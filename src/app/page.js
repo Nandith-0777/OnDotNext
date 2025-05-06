@@ -110,53 +110,70 @@ export default function InputComponent() {
   };
 
   return (
-    <div className="grid items-center grid justify-items-center flex flex-col items-start gap-4">
-      {showLogin && (
-        <>
-          <input
-            type="text"
-            placeholder="Enter username"
-            value={username}
-            onChange={handleUsernameChange}
-            className="border px-3 py-2 rounded"
-          />
-          <input
-            type="password"
-            placeholder="Enter password"
-            value={password}
-            onChange={handlePasswordChange}
-            className="border px-3 py-2 rounded"
-          />
-          <button
-            onClick={handleSubmit}
-            className="bg-blue-600 text-white px-4 py-2 rounded"
-          >
-            Submit
-          </button>
-        </>
-      )}
-      {errorMessage && (
-        <div className="text-red-600 mt-2">
-          {errorMessage}
-        </div>
-      )}
-      {loading && (
-        <div className="text-blue-600 mt-2">
-          Loading attendance data...
-        </div>
-      )}
-      {attendanceData && (
-        <div className="mt-4">
-          <h2 className="font-semibold mb-2">Attendance Details</h2>
-          <ul className="list-disc list-inside">
+    <div className="gradient-bg min-h-screen flex items-center justify-center p-4">
+      <div className="w-full max-w-md text-white">
+        <h1 className="text-2xl font-bold mb-6 text-center">On Dot Next</h1>
+
+        {showLogin && (
+          <div className="backdrop-blur-md bg-black/20 shadow-lg rounded-xl p-8 space-y-4">
+            <input
+              type="text"
+              placeholder="TL Number"
+              value={username}
+              onChange={handleUsernameChange}
+              className="w-full px-4 py-2 rounded-lg bg-black/30 text-white placeholder-white/70 focus:outline-none focus:ring-2 focus:ring-white/50"
+            />
+            <input
+              type="password"
+              placeholder="ERP Password"
+              value={password}
+              onChange={handlePasswordChange}
+              className="w-full px-4 py-2 rounded-lg bg-black/30 text-white placeholder-white/70 focus:outline-none focus:ring-2 focus:ring-white/50"
+            />
+            <button
+              onClick={handleSubmit}
+              className="flex justify-center w-1/2 mx-auto bg-black/30 hover:bg-black/40 text-white font-semibold py-2 rounded-full transition duration-300"
+            >
+              Submit
+            </button>
+          </div>
+        )}
+
+        {errorMessage && (
+          <div className="text-red-300 mt-4 text-center">
+            {errorMessage}
+          </div>
+        )}
+
+        {loading && (
+          <div className="flex flex-col items-center justify-center mt-6">
+            <div className="w-12 h-12 border-4 border-white border-t-transparent rounded-full animate-spin mb-4"></div>
+            <p className="text-white">Loading attendance data...</p>
+          </div>
+        )}
+
+        {attendanceData && (
+          <div className="mt-6 space-y-4">
+            <h2 className="font-semibold mb-4 text-lg text-center">Your Attendance percentage</h2>
             {Object.entries(attendanceData).map(([course, percentage]) => (
-              <li key={course}>
-                {course}: {percentage}%
-              </li>
+              <div key={course} className="h-full w-full rounded-xl bg-clip-padding backdrop-filter backdrop-blur-sm bg-opacity-10 bg-black/60 p-4 rounded-full shadow-md">
+                <div className="flex justify-between items-center mb-2">
+                  <span className="font-medium">{course}</span>
+                  <span className="text-sm">{percentage}%</span>
+                </div>
+                <div className="w-full bg-white/20 rounded-full h-3">
+                  <div
+                    className={`h-3 rounded-full ${percentage < 75
+                      ? 'bg-gradient-to-r from-red-500 via-red-600 to-red-700'
+                      : 'bg-gradient-to-r from-indigo-500 from-10% via-sky-500 via-30% to-emerald-500 to-90%'}`}
+                    style={{ width: `${percentage}%` }}
+                  ></div>
+                </div>
+              </div>
             ))}
-          </ul>
-        </div>
-      )}
+          </div>
+        )}
+      </div>
     </div>
   );
 }
