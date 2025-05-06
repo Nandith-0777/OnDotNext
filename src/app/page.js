@@ -8,12 +8,15 @@ export default function InputComponent() {
   const [password, setPassword] = useState('');
   const [attendanceData, setAttendanceData] = useState(null);
   const [errorMessage, setErrorMessage] = useState('');
+  const [showLogin, setShowLogin] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     const storedSid = Cookies.get('sid');
     const storedSessionId = Cookies.get('session_id');
 
     if (storedSid && storedSessionId) {
+      setLoading(true);
       const fetchAttendance = async () => {
         try {
           const attendanceRes = await fetch('/api/attendance', {
@@ -26,15 +29,22 @@ export default function InputComponent() {
 
           const attendance = await attendanceRes.json();
           setAttendanceData(attendance);
+          setLoading(false);
+          setShowLogin(false);
         } catch (error) {
           console.error("Failed to retrieve data with stored session.");
           setErrorMessage("Session expired or invalid. Please login again.");
+          setLoading(false);
           Cookies.remove('sid');
           Cookies.remove('session_id');
+          setShowLogin(true);
         }
       };
 
       fetchAttendance();
+    } else {
+      console.log("No stored session found. Please login.");
+      setShowLogin(true);
     }
   }, []);
 
@@ -71,6 +81,7 @@ export default function InputComponent() {
         Cookies.set('sid', sid);
         Cookies.set('session_id', session_id);
 
+        setLoading(true);
         const attendanceRes = await fetch('/api/attendance', {
           method: 'POST',
           headers: {
@@ -82,6 +93,8 @@ export default function InputComponent() {
         const attendance = await attendanceRes.json();
 
         setAttendanceData(attendance);
+        setLoading(false);
+        setShowLogin(false);
 
         console.log("\n--- Attendance Details ---");
         for (const [course, percentage] of Object.entries(attendance)) {
@@ -92,34 +105,44 @@ export default function InputComponent() {
     } catch (error) {
       console.error("Failed to retrieve data. Please try again.");
       setErrorMessage("Failed to retrieve data. Please try again.");
+      setLoading(false);
     }
   };
 
   return (
     <div className="grid items-center grid justify-items-center flex flex-col items-start gap-4">
-      <input
-        type="text"
-        placeholder="Enter username"
-        value={username}
-        onChange={handleUsernameChange}
-        className="border px-3 py-2 rounded"
-      />
-      <input
-        type="password"
-        placeholder="Enter password"
-        value={password}
-        onChange={handlePasswordChange}
-        className="border px-3 py-2 rounded"
-      />
-      <button
-        onClick={handleSubmit}
-        className="bg-blue-600 text-white px-4 py-2 rounded"
-      >
-        Submit
-      </button>
+      {showLogin && (
+        <>
+          <input
+            type="text"
+            placeholder="Enter username"
+            value={username}
+            onChange={handleUsernameChange}
+            className="border px-3 py-2 rounded"
+          />
+          <input
+            type="password"
+            placeholder="Enter password"
+            value={password}
+            onChange={handlePasswordChange}
+            className="border px-3 py-2 rounded"
+          />
+          <button
+            onClick={handleSubmit}
+            className="bg-blue-600 text-white px-4 py-2 rounded"
+          >
+            Submit
+          </button>
+        </>
+      )}
       {errorMessage && (
         <div className="text-red-600 mt-2">
           {errorMessage}
+        </div>
+      )}
+      {loading && (
+        <div className="text-blue-600 mt-2">
+          Loading attendance data...
         </div>
       )}
       {attendanceData && (
