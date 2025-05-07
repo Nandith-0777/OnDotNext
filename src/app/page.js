@@ -110,9 +110,11 @@ export default function InputComponent() {
   };
 
   return (
-    <div className="gradient-bg min-h-screen flex items-center justify-center p-4">
-      <div className="w-full max-w-md text-white">
-        <h1 className="text-2xl font-bold mb-6 text-center">On Dot Next</h1>
+    <div className="grid-bg -z-10 min-h-screen w-full overflow-auto">
+      <div className="fuchsia-blur"></div>
+    <div className="min-h-screen flex items-center justify-center p-4">
+      <div className="w-full max-w-md text-black">
+        <h1 className="text-2xl font-bold mb-6 text-center text-gray-800">On Dot Next</h1>
 
         {showLogin && (
           <div className="backdrop-blur-md bg-black/20 shadow-lg rounded-xl p-8 space-y-4">
@@ -147,19 +149,19 @@ export default function InputComponent() {
 
         {loading && (
           <div className="flex flex-col items-center justify-center mt-6">
-            <div className="w-12 h-12 border-4 border-white border-t-transparent rounded-full animate-spin mb-4"></div>
-            <p className="text-white">Loading attendance data...</p>
+            <div className="w-12 h-12 border-4 border-black border-t-transparent rounded-full animate-spin mb-4"></div>
+            <p className="text-black">Loading attendance data...</p>
           </div>
         )}
 
         {attendanceData && (
           <div className="mt-6 space-y-4">
-            <h2 className="font-semibold mb-4 text-lg text-center">Your Attendance percentage</h2>
+            <h2 className="font-semibold mb-4 text-lg text-center text-gray-800">Your Attendance percentage</h2>
             {Object.entries(attendanceData).map(([course, percentage]) => (
               <div key={course} className="h-full w-full rounded-xl bg-clip-padding backdrop-filter backdrop-blur-sm bg-opacity-10 bg-black/60 p-4 rounded-full shadow-md">
                 <div className="flex justify-between items-center mb-2">
-                  <span className="font-medium">{course}</span>
-                  <span className="text-sm">{percentage}%</span>
+                  <span className="font-medium text-white">{course}</span>
+                  <span className="text-sm text-white">{percentage}%</span>
                 </div>
                 <div className="w-full bg-white/20 rounded-full h-3">
                   <div
@@ -174,6 +176,7 @@ export default function InputComponent() {
           </div>
         )}
       </div>
+    </div>
     </div>
   );
 }

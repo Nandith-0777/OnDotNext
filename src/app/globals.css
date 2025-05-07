@@ -20,9 +20,35 @@
 }
 
 body {
-  background: var(--background) url('/backdrop.png') no-repeat center center fixed;
-  background-size: cover;
+  background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
 
+.grid-bg {
+  position: fixed;
+  inset: 0;
+  z-index: -10;
+  height: 100%;
+  width: 100%;
+  background-color: white;
+  background-image: 
+    linear-gradient(to right, #8080800a 1px, transparent 1px),
+    linear-gradient(to bottom, #8080800a 1px, transparent 1px);
+  background-size: 14px 24px;
+}
+
+.fuchsia-blur {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  margin: auto;
+  height: 310px;
+  width: 310px;
+  border-radius: 9999px; /* full */
+  background-color: #e879f9; /* fuchsia-400 */
+  opacity: 0.2;
+  filter: blur(100px);
+  z-index: -10;
+}
