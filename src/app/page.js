@@ -110,11 +110,42 @@ export default function InputComponent() {
   };
 
   return (
-    <div className="grid-bg -z-10 min-h-screen w-full overflow-auto">
-      <div className="fuchsia-blur"></div>
-    <div className="min-h-screen flex items-center justify-center p-4">
+    <div className="relative min-h-screen w-full overflow-auto">
+      <div className="fixed inset-0 -z-10 h-full w-full bg-white bg-[linear-gradient(to_right,#f0f0f0_1px,transparent_1px),linear-gradient(to_bottom,#f0f0f0_1px,transparent_1px)] bg-[size:6rem_4rem]">
+        <div className="absolute bottom-0 left-0 right-0 top-0 bg-[radial-gradient(circle_800px_at_100%_200px,#d5c5ff,transparent)]"></div>
+      </div>
+    <div className="min-h-screen flex p-6 pt-24 justify-center">
       <div className="w-full max-w-md text-black">
-        <h1 className="text-2xl font-bold mb-6 text-center text-gray-800">On Dot Next</h1>
+        <h2 className="text-center text-6xl sm:text-4xl md:text-5xl font-medium text-gray-900">
+          OnDot{' '}
+        </h2>
+        <h2 className="text-center text-6xl sm:text-4xl md:text-5xl font-medium text-gray-900">
+          <span className="animate-text-gradient inline-flex bg-gradient-to-r from-neutral-900 via-slate-500 to-neutral-500 bg-[200%_auto] bg-clip-text leading-tight text-transparent">
+            Next
+          </span>
+        </h2>
+        {showLogin && (
+          <>
+            <p className="mt-6 text-center text-lg leading-6 text-gray-600">
+              The next generation of OnDot, now available as Web-App with Easy-to-use, Interface. All crafted with a {' '}
+              <span className="cursor-wait opacity-70 ">Design</span> first approach. Supports {' '}
+              <span className="cursor-wait opacity-70 ">iOS</span> and {' '}
+              <span className="cursor-wait opacity-70">Android</span> platforms.
+            </p>
+            <div className="mt-10 mb-6 flex gap-4 justify-center">
+              <a
+                href="https://vidyaacademy.ac.in"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center"
+              >
+                <button className="px-4 py-2 bg-black text-white rounded flex items-center gap-1">
+                  Install Now <span className="pl-0.5">→</span>
+                </button>
+              </a>
+            </div>
+          </>
+        )}
 
         {showLogin && (
           <div className="backdrop-blur-md bg-black/20 shadow-lg rounded-xl p-8 space-y-4">
@@ -173,6 +204,18 @@ export default function InputComponent() {
                 </div>
               </div>
             ))}
+            <button
+                className="px-4 py-2 bg-gray-200 text-black rounded"
+                onClick={() => {
+                  Cookies.remove('sid');
+                  Cookies.remove('session_id');
+                  setAttendanceData(null);
+                  setShowLogin(true);
+                  setErrorMessage('');
+                }}
+              >
+                Log Out
+              </button>
           </div>
         )}
       </div>
