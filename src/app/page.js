@@ -114,7 +114,7 @@ export default function InputComponent() {
       <div className="fixed inset-0 -z-10 h-full w-full bg-white bg-[linear-gradient(to_right,#f0f0f0_1px,transparent_1px),linear-gradient(to_bottom,#f0f0f0_1px,transparent_1px)] bg-[size:6rem_4rem]">
         <div className="absolute bottom-0 left-0 right-0 top-0 bg-[radial-gradient(circle_800px_at_100%_200px,#d5c5ff,transparent)]"></div>
       </div>
-    <div className="min-h-screen flex p-6 pt-24 justify-center">
+    <div className="min-h-screen flex p-6 pt-14 justify-center">
       <div className="w-full max-w-md text-black">
         <h2 className="text-center text-6xl sm:text-4xl md:text-5xl font-medium text-gray-900">
           OnDot{' '}
@@ -148,28 +148,42 @@ export default function InputComponent() {
         )}
 
         {showLogin && (
-          <div className="backdrop-blur-md bg-black/20 shadow-lg rounded-xl p-8 space-y-4">
-            <input
-              type="text"
-              placeholder="TL Number"
-              value={username}
-              onChange={handleUsernameChange}
-              className="w-full px-4 py-2 rounded-lg bg-black/30 text-white placeholder-white/70 focus:outline-none focus:ring-2 focus:ring-white/50"
-            />
-            <input
-              type="password"
-              placeholder="ERP Password"
-              value={password}
-              onChange={handlePasswordChange}
-              className="w-full px-4 py-2 rounded-lg bg-black/30 text-white placeholder-white/70 focus:outline-none focus:ring-2 focus:ring-white/50"
-            />
+          <form className="w-full max-w-sm mx-auto bg-white/30 backdrop-blur-md rounded-3xl shadow-lg shadow-slate-400/50 p-8 space-y-6"  onSubmit={e => { e.preventDefault(); handleSubmit(); }}>
+            <div>
+              <label htmlFor="username" className="block mb-2 text-sm font-medium text-gray-700">
+                TL Number
+              </label>
+              <input
+                id="username"
+                type="text"
+                value={username}
+                onChange={handleUsernameChange}
+                className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-indigo-500 focus:border-indigo-500 block w-full p-2.5"
+                placeholder="Enter your TL Number"
+                required
+              />
+            </div>
+            <div>
+              <label htmlFor="password" className="block mb-2 text-sm font-medium text-gray-700">
+                ERP Password
+              </label>
+              <input
+                id="password"
+                type="password"
+                value={password}
+                onChange={handlePasswordChange}
+                className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-indigo-500 focus:border-indigo-500 block w-full p-2.5"
+                placeholder="Enter your ERP Password"
+                required
+              />
+            </div>
             <button
-              onClick={handleSubmit}
-              className="flex justify-center w-1/2 mx-auto bg-black/30 hover:bg-black/40 text-white font-semibold py-2 rounded-full transition duration-300"
+              type="submit"
+              className="w-full text-white bg-gray-700 hover:bg-gray-800 focus:ring-4 focus:outline-none focus:ring-slate-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center transition"
             >
-              Submit
+              Sign In
             </button>
-          </div>
+          </form>
         )}
 
         {errorMessage && (
@@ -180,32 +194,45 @@ export default function InputComponent() {
 
         {loading && (
           <div className="flex flex-col items-center justify-center mt-6">
-            <div className="w-12 h-12 border-4 border-black border-t-transparent rounded-full animate-spin mb-4"></div>
+            <div className="loader"></div>
             <p className="text-black">Loading attendance data...</p>
           </div>
         )}
 
         {attendanceData && (
-          <div className="mt-6 space-y-4">
-            <h2 className="font-semibold mb-4 text-lg text-center text-gray-800">Your Attendance percentage</h2>
+          <div className="w-full max-w-md mx-auto mt-6 space-y-4">
+            <h5 className="ml-1 text-lg font-bold tracking-tight text-gray-900 dark:text-white">
+               Your Attendance Details
+                  </h5>
             {Object.entries(attendanceData).map(([course, percentage]) => (
-              <div key={course} className="h-full w-full rounded-xl bg-clip-padding backdrop-filter backdrop-blur-sm bg-opacity-10 bg-black/60 p-4 rounded-full shadow-md">
-                <div className="flex justify-between items-center mb-2">
-                  <span className="font-medium text-white">{course}</span>
-                  <span className="text-sm text-white">{percentage}%</span>
+              <div
+                key={course}
+                className="block w-full min-h-[120px] p-6 bg-white/30 backdrop-blur-md border border-gray-200 rounded-xl shadow-lg shadow-slate-600/50 hover:bg-gray-400 dark:bg-gray-800/30 dark:border-gray-700 dark:hover:bg-gray-700/50"
+
+              >
+                <div className="mt-1 flex justify-between items-center">
+                  <h5 className="text-lg font-bold tracking-tight text-gray-900 dark:text-white">
+                    {course}
+                  </h5>
+                  <span className="text-2xl font-bold text-gray-900 dark:text-white">
+                    {percentage}%
+                  </span>
                 </div>
-                <div className="w-full bg-white/20 rounded-full h-3">
-                  <div
-                    className={`h-3 rounded-full ${percentage < 75
-                      ? 'bg-gradient-to-r from-red-500 via-red-600 to-red-700'
-                      : 'bg-gradient-to-r from-indigo-500 from-10% via-sky-500 via-30% to-emerald-500 to-90%'}`}
-                    style={{ width: `${percentage}%` }}
-                  ></div>
+                <div className="mt-10 mb-1">
+                  <div className="w-full bg-gray-200 rounded-full h-2.5 dark:bg-gray-500 transition-all duration-500 ease-in-out">
+                    <div
+                      className={`h-2.5 rounded-full ${percentage < 75
+                        ? 'bg-gradient-to-r from-red-700 to-red-500'
+                        : 'bg-gradient-to-r from-green-600 to-green-500'}`}
+                      style={{ width: `${percentage}%` }}
+                    ></div>
+                  </div>
                 </div>
               </div>
             ))}
-            <button
-                className="px-4 py-2 bg-gray-200 text-black rounded"
+            <div className="flex justify-center">
+              <button
+                className="mt-4 px-4 py-2 bg-gray-200 text-black rounded"
                 onClick={() => {
                   Cookies.remove('sid');
                   Cookies.remove('session_id');
@@ -216,6 +243,7 @@ export default function InputComponent() {
               >
                 Log Out
               </button>
+            </div>
           </div>
         )}
       </div>
