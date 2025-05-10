@@ -3,6 +3,45 @@ import { useState, useEffect } from 'react';
 import Cookies from 'js-cookie';
 import CryptoJS from 'crypto-js';
 
+function InstallPrompt() {
+  const [isIOS, setIsIOS] = useState(false);
+  const [isStandalone, setIsStandalone] = useState(false);
+
+  useEffect(() => {
+    setIsIOS(
+      /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream
+    );
+
+    setIsStandalone(window.matchMedia('(display-mode: standalone)').matches);
+  }, []);
+
+  if (isStandalone) {
+    return null; // Don't show install button if already installed
+  }
+
+  return (
+    <div>
+      <h3>Install App</h3>
+      <button>Add to Home Screen</button>
+      {isIOS && (
+        <p>
+          To install this app on your iOS device, tap the share button
+          <span role="img" aria-label="share icon">
+            {' '}
+            ⎋{' '}
+          </span>
+          and then "Add to Home Screen"
+          <span role="img" aria-label="plus icon">
+            {' '}
+            ➕{' '}
+          </span>
+          .
+        </p>
+      )}
+    </div>
+  );
+}
+
 export default function InputComponent() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -144,6 +183,9 @@ export default function InputComponent() {
 
   return (
     <div className="relative min-h-screen w-full overflow-auto">
+      <div>
+      <InstallPrompt />
+      </div>
       <div className="fixed inset-0 -z-10 h-full w-full bg-white bg-[linear-gradient(to_right,#f0f0f0_1px,transparent_1px),linear-gradient(to_bottom,#f0f0f0_1px,transparent_1px)] bg-[size:6rem_4rem]">
         <div className="absolute bottom-0 left-0 right-0 top-0 bg-[radial-gradient(circle_800px_at_100%_200px,#d5c5ff,transparent)]"></div>
       </div>
