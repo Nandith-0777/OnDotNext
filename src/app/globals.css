@@ -75,33 +75,6 @@
 @keyframes l10{
   90%,100% {transform: translate(300%)}
 }
-.grid-bg {
-  position: fixed;
-  inset: 0;
-  z-index: -10;
-  height: 100%;
-  width: 100%;
-  background-color: white;
-  background-image: 
-    linear-gradient(to right, #8080800a 1px, transparent 1px),
-    linear-gradient(to bottom, #8080800a 1px, transparent 1px);
-  background-size: 14px 24px;
-}
-
-.fuchsia-blur {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  margin: auto;
-  height: 310px;
-  width: 310px;
-  border-radius: 9999px; /* full */
-  background-color: #e879f9; /* fuchsia-400 */
-  opacity: 0.2;
-  filter: blur(100px);
-  z-index: -10;
-}
 
 :root {
   --radius: 0.625rem;
@@ -179,4 +152,32 @@
   body {
     @apply bg-background text-foreground;
   }
+}
+
+@keyframes fadeInLeft {
+  0% {
+    transform: translateX(-40px);
+    opacity: 0;
+  }
+  100% {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+.animate-fadeInLeft {
+  animation: fadeInLeft 0.5s ease-out forwards;
+}
+
+@keyframes fadeInLogin {
+  0% {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.animate-fadeInLogin {
+  animation: fadeInLogin 0.6s ease-out forwards;
 }

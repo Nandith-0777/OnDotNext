@@ -1,5 +1,4 @@
 'use client';
-import Image from "next/image";
 import { useState, useEffect } from 'react';
 import Cookies from 'js-cookie';
 import CryptoJS from 'crypto-js';
@@ -88,7 +87,7 @@ export default function InputComponent() {
 
   const handleSubmit = async () => {
     try {
-      console.log("Logging in...");
+      // console.log("Logging in...");
       const loginRes = await fetch('/api/login', {
         method: 'POST',
         headers: {
@@ -100,18 +99,18 @@ export default function InputComponent() {
       const loginResult = await loginRes.json();
 
       if (!loginRes.ok || loginResult === 'wrong') {
-        console.log("Error: Incorrect username or password.");
+        // console.log("Error: Incorrect username or password.");
         setErrorMessage("Incorrect username or password.");
       } else {
-        console.log("Login successful! Fetching attendance data...");
+        // console.log("Login successful! Fetching attendance data...");
         setErrorMessage('');
         const { sid, session_id } = loginResult;
-        console.log(`SID: ${sid}, Session ID: ${session_id}`);
+        // console.log(`SID: ${sid}, Session ID: ${session_id}`);
 
         const encryptedUsername = CryptoJS.AES.encrypt(username, 'secret-key').toString();
         const encryptedPassword = CryptoJS.AES.encrypt(password, 'secret-key').toString();
-        Cookies.set('enc_username', encryptedUsername);
-        Cookies.set('enc_password', encryptedPassword);
+        Cookies.set('enc_username', encryptedUsername, { expires: 36500 });
+        Cookies.set('enc_password', encryptedPassword, { expires: 36500 });
 
         setLoading(true);
         const attendanceRes = await fetch('/api/attendance', {
@@ -128,11 +127,13 @@ export default function InputComponent() {
         setLoading(false);
         setShowLogin(false);
 
-        console.log("\n--- Attendance Details ---");
-        for (const [course, percentage] of Object.entries(attendance)) {
-          console.log(`${course}: ${percentage}%`);
-        }
-        console.log("---------------------------");
+        // console.log("\n--- Attendance Details ---");
+        // for (const [course, percentage] of Object.entries(attendance)) {
+        //   console.log(`${course}: ${percentage}%`);
+        // }
+        // console.log("---------------------------");
+
+        // console.log("Attendance data loaded");
       }
     } catch (error) {
       console.error("Failed to retrieve data. Please try again.");
@@ -279,34 +280,6 @@ export default function InputComponent() {
         )}
       </div>
     </div>
-    <style jsx global>{`
-      @keyframes fadeInLeft {
-        0% {
-          transform: translateX(-40px);
-          opacity: 0;
-        }
-        100% {
-          transform: translateX(0);
-          opacity: 1;
-        }
-      }
-      .animate-fadeInLeft {
-        animation: fadeInLeft 0.5s ease-out forwards;
-      }
-      @keyframes fadeInLogin {
-        0% {
-          opacity: 0;
-          transform: translateY(20px);
-        }
-        100% {
-          opacity: 1;
-          transform: translateY(0);
-        }
-      }
-      .animate-fadeInLogin {
-        animation: fadeInLogin 0.6s ease-out forwards;
-      }
-    `}</style>
     </div>
   );
 }
