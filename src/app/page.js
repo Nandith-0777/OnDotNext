@@ -2,6 +2,7 @@
 import Image from "next/image";
 import { useState, useEffect } from 'react';
 import Cookies from 'js-cookie';
+import CryptoJS from 'crypto-js';
 
 export default function InputComponent() {
   const [username, setUsername] = useState('');
@@ -12,19 +13,48 @@ export default function InputComponent() {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    const storedSid = Cookies.get('sid');
-    const storedSessionId = Cookies.get('session_id');
+    const encryptedUsername = Cookies.get('enc_username');
+    const encryptedPassword = Cookies.get('enc_password');
 
-    if (storedSid && storedSessionId) {
+    let storedUsername = null;
+    let storedPassword = null;
+    if (encryptedUsername && encryptedPassword) {
+      try {
+        storedUsername = CryptoJS.AES.decrypt(encryptedUsername, 'secret-key').toString(CryptoJS.enc.Utf8);
+        storedPassword = CryptoJS.AES.decrypt(encryptedPassword, 'secret-key').toString(CryptoJS.enc.Utf8);
+      } catch (e) {
+        console.error("Decryption failed.");
+      }
+    }
+
+    if (storedUsername && storedPassword) {
       setLoading(true);
       const fetchAttendance = async () => {
         try {
+          // Step 1: Login again using stored credentials
+          const loginRes = await fetch('/api/login', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ username: storedUsername, password: storedPassword })
+          });
+
+          const loginResult = await loginRes.json();
+
+          if (!loginRes.ok || loginResult === 'wrong') {
+            throw new Error("Auto-login failed.");
+          }
+
+          const { sid, session_id } = loginResult;
+
+          // Step 2: Fetch attendance using new sid/session_id
           const attendanceRes = await fetch('/api/attendance', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json'
             },
-            body: JSON.stringify({ sid: storedSid, session_id: storedSessionId })
+            body: JSON.stringify({ sid, session_id })
           });
 
           const attendance = await attendanceRes.json();
@@ -32,11 +62,11 @@ export default function InputComponent() {
           setLoading(false);
           setShowLogin(false);
         } catch (error) {
-          console.error("Failed to retrieve data with stored session.");
+          console.error("Auto-login or attendance fetch failed.");
           setErrorMessage("Session expired or invalid. Please login again.");
           setLoading(false);
-          Cookies.remove('sid');
-          Cookies.remove('session_id');
+          Cookies.remove('enc_username');
+          Cookies.remove('enc_password');
           setShowLogin(true);
         }
       };
@@ -78,8 +108,10 @@ export default function InputComponent() {
         const { sid, session_id } = loginResult;
         console.log(`SID: ${sid}, Session ID: ${session_id}`);
 
-        Cookies.set('sid', sid);
-        Cookies.set('session_id', session_id);
+        const encryptedUsername = CryptoJS.AES.encrypt(username, 'secret-key').toString();
+        const encryptedPassword = CryptoJS.AES.encrypt(password, 'secret-key').toString();
+        Cookies.set('enc_username', encryptedUsername);
+        Cookies.set('enc_password', encryptedPassword);
 
         setLoading(true);
         const attendanceRes = await fetch('/api/attendance', {
@@ -125,65 +157,64 @@ export default function InputComponent() {
           </span>
         </h2>
         {showLogin && (
-          <>
-            <p className="mt-6 text-center text-lg leading-6 text-gray-600">
-              The next generation of OnDot, now available as Web-App with Easy-to-use, Interface. All crafted with a {' '}
-              <span className="cursor-wait opacity-70 ">Design</span> first approach. Supports {' '}
-              <span className="cursor-wait opacity-70 ">iOS</span> and {' '}
-              <span className="cursor-wait opacity-70">Android</span> platforms.
-            </p>
-            <div className="mt-10 mb-6 flex gap-4 justify-center">
-              <a
-                href="https://vidyaacademy.ac.in"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center"
+          <div className="animate-fadeInLogin opacity-0 translate-y-4 transition-all duration-500 ease-out">
+            <>
+              <p className="mt-6 text-center text-lg leading-6 text-gray-600">
+                The next generation of OnDot, now available as Web-App with Easy-to-use, Interface. All crafted with a {' '}
+                <span className="cursor-wait opacity-70 ">Design</span> first approach. Supports {' '}
+                <span className="cursor-wait opacity-70 ">iOS</span> and {' '}
+                <span className="cursor-wait opacity-70">Android</span> platforms.
+              </p>
+              <div className="mt-10 mb-6 flex gap-4 justify-center">
+                <a
+                  href="https://vidyaacademy.ac.in"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center"
+                >
+                  <button className="px-4 py-2 bg-black text-white rounded flex items-center gap-1">
+                    Install Now <span className="pl-0.5">→</span>
+                  </button>
+                </a>
+              </div>
+            </>
+            <form className="w-full max-w-sm mx-auto bg-white/30 backdrop-blur-md rounded-3xl shadow-lg shadow-slate-400/50 p-8 space-y-6"  onSubmit={e => { e.preventDefault(); handleSubmit(); }}>
+              <div>
+                <label htmlFor="username" className="block mb-2 text-sm font-medium text-gray-700">
+                  TL Number
+                </label>
+                <input
+                  id="username"
+                  type="text"
+                  value={username}
+                  onChange={handleUsernameChange}
+                  className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-indigo-500 focus:border-indigo-500 block w-full p-2.5"
+                  placeholder="Enter your TL Number"
+                  required
+                />
+              </div>
+              <div>
+                <label htmlFor="password" className="block mb-2 text-sm font-medium text-gray-700">
+                  ERP Password
+                </label>
+                <input
+                  id="password"
+                  type="password"
+                  value={password}
+                  onChange={handlePasswordChange}
+                  className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-indigo-500 focus:border-indigo-500 block w-full p-2.5"
+                  placeholder="Enter your ERP Password"
+                  required
+                />
+              </div>
+              <button
+                type="submit"
+                className="w-full text-white bg-gray-700 hover:bg-gray-800 focus:ring-4 focus:outline-none focus:ring-slate-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center transition"
               >
-                <button className="px-4 py-2 bg-black text-white rounded flex items-center gap-1">
-                  Install Now <span className="pl-0.5">→</span>
-                </button>
-              </a>
-            </div>
-          </>
-        )}
-
-        {showLogin && (
-          <form className="w-full max-w-sm mx-auto bg-white/30 backdrop-blur-md rounded-3xl shadow-lg shadow-slate-400/50 p-8 space-y-6"  onSubmit={e => { e.preventDefault(); handleSubmit(); }}>
-            <div>
-              <label htmlFor="username" className="block mb-2 text-sm font-medium text-gray-700">
-                TL Number
-              </label>
-              <input
-                id="username"
-                type="text"
-                value={username}
-                onChange={handleUsernameChange}
-                className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-indigo-500 focus:border-indigo-500 block w-full p-2.5"
-                placeholder="Enter your TL Number"
-                required
-              />
-            </div>
-            <div>
-              <label htmlFor="password" className="block mb-2 text-sm font-medium text-gray-700">
-                ERP Password
-              </label>
-              <input
-                id="password"
-                type="password"
-                value={password}
-                onChange={handlePasswordChange}
-                className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-indigo-500 focus:border-indigo-500 block w-full p-2.5"
-                placeholder="Enter your ERP Password"
-                required
-              />
-            </div>
-            <button
-              type="submit"
-              className="w-full text-white bg-gray-700 hover:bg-gray-800 focus:ring-4 focus:outline-none focus:ring-slate-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center transition"
-            >
-              Sign In
-            </button>
-          </form>
+                Sign In
+              </button>
+            </form>
+          </div>
         )}
 
         {errorMessage && (
@@ -204,11 +235,11 @@ export default function InputComponent() {
             <h5 className="ml-1 text-lg font-bold tracking-tight text-gray-900 dark:text-white">
                Your Attendance Details
                   </h5>
-            {Object.entries(attendanceData).map(([course, percentage]) => (
+            {Object.entries(attendanceData).map(([course, percentage], index) => (
               <div
                 key={course}
-                className="block w-full min-h-[120px] p-6 bg-white/30 backdrop-blur-md border border-gray-200 rounded-xl shadow-lg shadow-slate-600/50 hover:bg-gray-400 dark:bg-gray-800/30 dark:border-gray-700 dark:hover:bg-gray-700/50"
-
+                className="block w-full min-h-[120px] p-6 bg-black/10 backdrop-blur-md rounded-xl shadow-lg shadow-slate-600/50 hover:bg-gray-100 dark:bg-gray-800/30 dark:border-gray-700 dark:hover:bg-gray-700/50 transform transition-all duration-500 ease-out translate-y-4 opacity-0 animate-fadeInLeft"
+                style={{ animationDelay: `${index * 100}ms` }}
               >
                 <div className="mt-1 flex justify-between items-center">
                   <h5 className="text-lg font-bold tracking-tight text-gray-900 dark:text-white">
@@ -234,8 +265,8 @@ export default function InputComponent() {
               <button
                 className="mt-4 px-4 py-2 bg-gray-200 text-black rounded"
                 onClick={() => {
-                  Cookies.remove('sid');
-                  Cookies.remove('session_id');
+                  Cookies.remove('enc_username');
+                  Cookies.remove('enc_password');
                   setAttendanceData(null);
                   setShowLogin(true);
                   setErrorMessage('');
@@ -248,6 +279,34 @@ export default function InputComponent() {
         )}
       </div>
     </div>
+    <style jsx global>{`
+      @keyframes fadeInLeft {
+        0% {
+          transform: translateX(-40px);
+          opacity: 0;
+        }
+        100% {
+          transform: translateX(0);
+          opacity: 1;
+        }
+      }
+      .animate-fadeInLeft {
+        animation: fadeInLeft 0.5s ease-out forwards;
+      }
+      @keyframes fadeInLogin {
+        0% {
+          opacity: 0;
+          transform: translateY(20px);
+        }
+        100% {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+      .animate-fadeInLogin {
+        animation: fadeInLogin 0.6s ease-out forwards;
+      }
+    `}</style>
     </div>
   );
 }
