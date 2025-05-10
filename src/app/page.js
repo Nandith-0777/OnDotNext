@@ -182,6 +182,7 @@ export default function InputComponent() {
   };
 
   return (
+    
     <div className="relative min-h-screen w-full overflow-auto">
       <div>
       <InstallPrompt />
