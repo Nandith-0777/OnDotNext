@@ -5,13 +5,14 @@ import CryptoJS from 'crypto-js';
 
 function InstallPrompt() {
   const [isIOS, setIsIOS] = useState(false);
+  const [isAndroid, setIsAndroid] = useState(false);
   const [isStandalone, setIsStandalone] = useState(false);
 
   useEffect(() => {
     setIsIOS(
       /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream
     );
-
+    setIsAndroid(/android/i.test(navigator.userAgent));
     setIsStandalone(window.matchMedia('(display-mode: standalone)').matches);
   }, []);
 
@@ -21,22 +22,25 @@ function InstallPrompt() {
 
   return (
     <div>
-      <h3>Install App</h3>
-      <button>Add to Home Screen</button>
-      {isIOS && (
-        <p>
-          To install this app on your iOS device, tap the share button
-          <span role="img" aria-label="share icon">
-            {' '}
-            ⎋{' '}
-          </span>
-          and then "Add to Home Screen"
-          <span role="img" aria-label="plus icon">
-            {' '}
-            ➕{' '}
-          </span>
-          .
-        </p>
+      {(isIOS || isAndroid) && (
+        <div className="mt-10 mb-6 flex gap-4 justify-center">
+          <button
+            onClick={() => {
+              if (isIOS) {
+                window.alert(
+                  "Installation Instructions:\n1. Tap the Share button in Safari (looks like a square with an arrow).\n2. Scroll down and tap “Add to Home Screen”.\n3. Confirm by tapping “Add”."
+                );
+              } else {
+                window.alert(
+                  "Installation Instructions:\n1. Open your browser’s menu (usually the three dots in the top-right corner).\n2. Tap “Add to Home Screen”.\n3. Confirm by tapping “Add”."
+                );
+              }
+            }}
+            className="px-4 py-2 bg-black text-white rounded flex items-center gap-1"
+          >
+            Install Now <span className="pl-0.5">→</span>
+          </button>
+        </div>
       )}
     </div>
   );
@@ -185,7 +189,7 @@ export default function InputComponent() {
     
     <div className="relative min-h-screen w-full overflow-auto">
       <div>
-      <InstallPrompt />
+      
       </div>
       <div className="fixed inset-0 -z-10 h-full w-full bg-white bg-[linear-gradient(to_right,#f0f0f0_1px,transparent_1px),linear-gradient(to_bottom,#f0f0f0_1px,transparent_1px)] bg-[size:6rem_4rem]">
         <div className="absolute bottom-0 left-0 right-0 top-0 bg-[radial-gradient(circle_800px_at_100%_200px,#d5c5ff,transparent)]"></div>
@@ -209,19 +213,8 @@ export default function InputComponent() {
                 <span className="cursor-wait opacity-70 ">iOS</span> and {' '}
                 <span className="cursor-wait opacity-70">Android</span> platforms.
               </p>
-              <div className="mt-10 mb-6 flex gap-4 justify-center">
-                <a
-                  href="https://vidyaacademy.ac.in"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center"
-                >
-                  <button className="px-4 py-2 bg-black text-white rounded flex items-center gap-1">
-                    Install Now <span className="pl-0.5">→</span>
-                  </button>
-                </a>
-              </div>
             </>
+            <InstallPrompt />
             <form className="w-full max-w-sm mx-auto bg-white/30 backdrop-blur-md rounded-3xl shadow-lg shadow-slate-400/50 p-8 space-y-6"  onSubmit={e => { e.preventDefault(); handleSubmit(); }}>
               <div>
                 <label htmlFor="username" className="block mb-2 text-sm font-medium text-gray-700">
