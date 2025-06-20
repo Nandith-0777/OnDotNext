@@ -1,22 +1,22 @@
 export default function manifest() {
     return {
-      name: 'Next.js PWA',
-      short_name: 'NextPWA',
-      description: 'A Progressive Web App built with Next.js',
+      name: 'OnDot Next App',
+      short_name: 'OnDot Next',
+      description: 'A Web App to track attendance of Vidya Academy students',
       start_url: '/',
       display: 'standalone',
       background_color: '#ffffff',
       theme_color: '#000000',
       icons: [
         {
-          src: '/vercel.svg',
+          src: '/OnDotNext.png',
           sizes: '192x192',
-          type: 'image/svg',
+          type: 'image/png',
         },
         {
-          src: '/vercel.svg',
+          src: '/OnDotNext.png',
           sizes: '512x512',
-          type: 'image/svg',
+          type: 'image/png',
         },
       ],
     }

@@ -21,9 +21,9 @@ function InstallPrompt() {
   }
 
   return (
-    <div>
+    <div className={(isIOS || isAndroid) ? "mt-8 mb-6" : "mb-8"}>
       {(isIOS || isAndroid) && (
-        <div className="mt-10 mb-6 flex gap-4 justify-center">
+        <div className="flex gap-4 justify-center">
           <button
             onClick={() => {
               if (isIOS) {
