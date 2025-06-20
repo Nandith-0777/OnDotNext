@@ -207,7 +207,7 @@ export default function InputComponent() {
         {showLogin && (
           <div className="animate-fadeInLogin opacity-0 translate-y-4 transition-all duration-500 ease-out">
             <>
-              <p className="mt-6 text-center text-lg leading-6 text-gray-600">
+              <p className="mt-6 text-center text-lg leading-6 text-gray-600 mb-6">
                 The next generation of OnDot, now available as Web-App with Easy-to-use, Interface. All crafted with a {' '}
                 <span className="cursor-wait opacity-70 ">Design</span> first approach. Supports {' '}
                 <span className="cursor-wait opacity-70 ">iOS</span> and {' '}
@@ -314,7 +314,12 @@ export default function InputComponent() {
             </div>
           </div>
         )}
+        
       </div>
+    </div>
+    {/* Fixed footer logo moved outside scrollable content */}
+    <div className="fixed bottom-0 left-0 w-full flex justify-center py-4 z-10">
+      <img src="/ondotfooter.png" alt="Logo" className="h-12 w-auto opacity-100" />
     </div>
     </div>
   );
