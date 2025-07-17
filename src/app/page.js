@@ -300,7 +300,7 @@ export default function InputComponent() {
             )}
 
             {errorMessage && (
-              <div className="text-red-600 bg-red-100 border border-red-400 rounded-lg p-3 mt-4 text-center animate-fadeInLogin">
+              <div className="mx-auto w-80 mt-12 text-red-600 bg-red-100 border border-red-400 rounded-lg p-3 mt-4 text-center animate-fadeInLogin">
                 {errorMessage}
               </div>
             )}
