@@ -11,31 +11,41 @@ import CryptoJS from "crypto-js";
 // A small component for the "Install on iOS/Android" prompt.
 function InstallPrompt() {
   const [isIOS, setIsIOS] = useState(false);
+  const [isAndroid, setIsAndroid] = useState(false);
   const [isStandalone, setIsStandalone] = useState(false);
 
   useEffect(() => {
     setIsIOS(/iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream);
+    setIsAndroid(/android/i.test(navigator.userAgent));
     setIsStandalone(window.matchMedia("(display-mode: standalone)").matches);
   }, []);
 
-  if (isStandalone || !isIOS) {
-    return null; // Only show for iOS Safari as Android has a built-in prompt.
+  if (isStandalone) {
+    return null; // Don't show install button if already installed
   }
 
   return (
-    <div className="mt-8 mb-6">
-      <div className="flex gap-4 justify-center">
-        <button
-          onClick={() => {
-            alert(
-              "Installation Instructions:\n1. Tap the Share button in Safari.\n2. Scroll down and tap 'Add to Home Screen'.\n3. Confirm by tapping 'Add'."
-            );
-          }}
-          className="px-4 py-2 bg-black text-white rounded-lg flex items-center gap-1 shadow-md hover:bg-gray-800 transition-colors"
-        >
-          Install App <span className="pl-0.5">→</span>
-        </button>
-      </div>
+    <div className={isIOS || isAndroid ? "mt-8 mb-6" : "mb-8"}>
+      {(isIOS || isAndroid) && (
+        <div className="flex gap-4 justify-center">
+          <button
+            onClick={() => {
+              if (isIOS) {
+                window.alert(
+                  "Installation Instructions:\n1. Tap the Share button in Safari (looks like a square with an arrow).\n2. Scroll down and tap “Add to Home Screen”.\n3. Confirm by tapping “Add”."
+                );
+              } else {
+                window.alert(
+                  "Installation Instructions:\n1. Open your browser’s menu (usually the three dots in the top-right corner).\n2. Tap “Add to Home Screen”.\n3. Confirm by tapping “Add”."
+                );
+              }
+            }}
+            className="px-4 py-2 bg-black text-white rounded flex items-center gap-1"
+          >
+            Install Now <span className="pl-0.5">→</span>
+          </button>
+        </div>
+      )}
     </div>
   );
 }
