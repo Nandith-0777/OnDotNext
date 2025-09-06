@@ -8,6 +8,14 @@ import { useState, useEffect } from "react";
 import Cookies from "js-cookie";
 import CryptoJS from "crypto-js";
 
+// ✅ Helper function: TL number >= 24 (case-insensitive)
+const isEligibleUser = (id) => {
+  if (typeof id !== "string") return false;
+  const match = id.toLowerCase().match(/^tl(\d+)/);
+  if (!match) return false;
+  return parseInt(match[1], 10) >= 24;
+};
+
 // A small component for the "Install on iOS/Android" prompt.
 function InstallPrompt() {
   const [isIOS, setIsIOS] = useState(false);
@@ -55,20 +63,21 @@ export default function InputComponent() {
   // --- STATE MANAGEMENT ---
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-  const [userName, setUserName] = useState(""); // State for user's name
-  const [courseSummary, setCourseSummary] = useState(null); // Holds the final calculated summary
+  const [userName, setUserName] = useState("");
+  const [courseSummary, setCourseSummary] = useState(null);
   const [errorMessage, setErrorMessage] = useState("");
   const [showLogin, setShowLogin] = useState(false);
   const [loading, setLoading] = useState(false);
   const [loadingMessage, setLoadingMessage] = useState(
     "Loading attendance data..."
   );
+  const [isEligibleForCondonation, setIsEligibleForCondonation] = useState(false);
 
   // --- CONSTANTS ---
-  const SECRET_KEY = "your-very-secret-key-that-is-long-and-random"; // Use a secure, random key
+  const SECRET_KEY = "your-very-secret-key-that-is-long-and-random";
+  const CONDONATION_FEE = 750; // 💰 fixed condonation fee
 
   // --- EFFECTS ---
-  // This effect runs on initial load to check for stored credentials and auto-login.
   useEffect(() => {
     const encryptedUsername = Cookies.get("enc_username");
     const encryptedPassword = Cookies.get("enc_password");
@@ -125,7 +134,10 @@ export default function InputComponent() {
       }
 
       const { sid, session_id, uid, name } = loginResult;
-      setUserName(name.trim()); // Set the user's name
+      setUserName(name.trim());
+
+      // ✅ Mark eligibility from TL number
+      setIsEligibleForCondonation(isEligibleUser(currentUsername));
 
       setLoadingMessage("Fetching attendance records...");
       const attendanceRes = await fetch("/api/attendance", {
@@ -144,7 +156,7 @@ export default function InputComponent() {
       setLoadingMessage("Calculating summary...");
       processAttendanceData(detailedAttendance);
 
-      // Store credentials only after a fully successful data fetch
+      // store encrypted credentials
       const encryptedUsername = CryptoJS.AES.encrypt(
         currentUsername,
         SECRET_KEY
@@ -176,6 +188,7 @@ export default function InputComponent() {
 
   const processAttendanceData = (detailedAttendance) => {
     const courseStats = {};
+    let totalCondonation = 0;
 
     detailedAttendance.forEach((item) => {
       const courseName = item.course[1];
@@ -198,17 +211,26 @@ export default function InputComponent() {
 
       if (percentage >= 75) {
         stats.statusType = "safe";
-        stats.statusValue = Math.floor(
-          stats.attendedClasses / 0.75 - stats.totalClasses
+        stats.statusValue = Math.max(
+          0,
+          Math.floor(stats.attendedClasses / 0.75 - stats.totalClasses)
         );
+        stats.condonation = 0;
       } else {
         stats.statusType = "danger";
         stats.statusValue = Math.ceil(
           (0.75 * stats.totalClasses - stats.attendedClasses) / 0.25
         );
+
+        // ✅ Apply condonation only if eligible
+        stats.condonation = isEligibleForCondonation ? CONDONATION_FEE : 0;
+        if (isEligibleForCondonation) {
+          totalCondonation += CONDONATION_FEE;
+        }
       }
     }
-    setCourseSummary(courseStats);
+
+    setCourseSummary({ courses: courseStats, totalCondonation });
   };
 
   // --- EVENT HANDLERS ---
@@ -325,18 +347,16 @@ export default function InputComponent() {
             {courseSummary && (
               <div className="w-full max-w-md mx-auto mt-6 space-y-4">
                 <div className="ml-1 mb-4">
-                  {" "}
-                  {/* Increased bottom margin */}
                   <h5 className="text-xl font-bold tracking-tight text-gray-900">
                     Hi {userName},
                   </h5>
                   <p className="text-gray-700">Your attendance details</p>
                 </div>
-                {Object.entries(courseSummary).map(
+                {Object.entries(courseSummary.courses).map(
                   ([courseName, stats], index) => (
                     <div
                       key={courseName}
-                      className="block w-full p-6 bg-black/5 backdrop-blur-md rounded-2xl shadow-lg shadow-slate-600/20 transform transition-all duration-500 ease-out translate-y-4 opacity-0 animate-fadeInLogin" // Changed animation to be consistent and centered
+                      className="block w-full p-6 bg-black/5 backdrop-blur-md rounded-2xl shadow-lg shadow-slate-600/20 transform transition-all duration-500 ease-out translate-y-4 opacity-0 animate-fadeInLogin"
                       style={{ animationDelay: `${index * 100}ms` }}
                     >
                       <div className="flex justify-between items-start">
@@ -368,12 +388,41 @@ export default function InputComponent() {
                           <div className="flex items-center gap-2 font-medium text-black">
                             <span className="h-2 w-2 rounded-full bg-amber-500"></span>
                             Must Attend: {stats.statusValue}
+                            {/* ✅ Show condonation badge only if eligible */}
+                            {isEligibleForCondonation && (
+                              <span className="ml-2 px-2 py-0.5 bg-red-100 text-red-600 rounded-full text-xs font-semibold">
+                                Condonation: ₹{stats.condonation}
+                              </span>
+                            )}
                           </div>
                         )}
                       </div>
                     </div>
                   )
                 )}
+
+                {/* ✅ Total Condonation (only for eligible users) */}
+                {isEligibleForCondonation && courseSummary.totalCondonation > 0 && (
+                  <div
+                    className="block w-full p-6 bg-black/5 backdrop-blur-md rounded-2xl shadow-lg shadow-slate-600/20 
+                              transform transition-all duration-500 ease-out translate-y-4 opacity-0 animate-fadeInLogin"
+                    style={{
+                      animationDelay: `${
+                        Object.keys(courseSummary.courses).length * 100
+                      }ms`,
+                    }}
+                  >
+                    <div className="flex justify-between items-center">
+                      <h5 className="text-lg font-bold tracking-tight text-gray-900">
+                        Total Condonation
+                      </h5>
+                      <span className="text-xl font-bold text-red-600">
+                        ₹{courseSummary.totalCondonation}
+                      </span>
+                    </div>
+                  </div>
+                )}
+
                 <div className="flex justify-center pt-4">
                   <button
                     className="px-4 py-2 bg-gray-200 text-black rounded-lg shadow-sm hover:bg-gray-300 transition-colors"
