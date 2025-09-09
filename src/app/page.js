@@ -1,7 +1,7 @@
 // NOTES: This is the main frontend component.
 // - It now fetches and calculates the detailed attendance summary.
 // - The UI is updated to display the new summary format.
-// - Login and auto-login logic now handles the required `uid`.
+// - Login and auto-login logic now handles the required uid.
 
 "use client";
 import { useState, useEffect } from "react";
@@ -28,9 +28,7 @@ function InstallPrompt() {
     setIsStandalone(window.matchMedia("(display-mode: standalone)").matches);
   }, []);
 
-  if (isStandalone) {
-    return null; // Don't show install button if already installed
-  }
+  if (isStandalone) return null;
 
   return (
     <div className={isIOS || isAndroid ? "mt-8 mb-6" : "mb-8"}>
@@ -71,7 +69,8 @@ export default function InputComponent() {
   const [loadingMessage, setLoadingMessage] = useState(
     "Loading attendance data..."
   );
-  const [isEligibleForCondonation, setIsEligibleForCondonation] = useState(false);
+  const [isEligibleForCondonation, setIsEligibleForCondonation] =
+    useState(false);
 
   // --- CONSTANTS ---
   const SECRET_KEY = "your-very-secret-key-that-is-long-and-random";
@@ -136,8 +135,9 @@ export default function InputComponent() {
       const { sid, session_id, uid, name } = loginResult;
       setUserName(name.trim());
 
-      // ✅ Mark eligibility from TL number
-      setIsEligibleForCondonation(isEligibleUser(currentUsername));
+      // ✅ Calculate eligibility
+      const eligible = isEligibleUser(currentUsername);
+      setIsEligibleForCondonation(eligible);
 
       setLoadingMessage("Fetching attendance records...");
       const attendanceRes = await fetch("/api/attendance", {
@@ -154,7 +154,7 @@ export default function InputComponent() {
       }
 
       setLoadingMessage("Calculating summary...");
-      processAttendanceData(detailedAttendance);
+      processAttendanceData(detailedAttendance, eligible);
 
       // store encrypted credentials
       const encryptedUsername = CryptoJS.AES.encrypt(
@@ -186,7 +186,7 @@ export default function InputComponent() {
     }
   };
 
-  const processAttendanceData = (detailedAttendance) => {
+  const processAttendanceData = (detailedAttendance, eligible) => {
     const courseStats = {};
     let totalCondonation = 0;
 
@@ -222,9 +222,9 @@ export default function InputComponent() {
           (0.75 * stats.totalClasses - stats.attendedClasses) / 0.25
         );
 
-        // ✅ Apply condonation only if eligible
-        stats.condonation = isEligibleForCondonation ? CONDONATION_FEE : 0;
-        if (isEligibleForCondonation) {
+        // ✅ Use eligibility passed from fetchData
+        stats.condonation = eligible ? CONDONATION_FEE : 0;
+        if (eligible) {
           totalCondonation += CONDONATION_FEE;
         }
       }
@@ -352,6 +352,7 @@ export default function InputComponent() {
                   </h5>
                   <p className="text-gray-700">Your attendance details</p>
                 </div>
+
                 {Object.entries(courseSummary.courses).map(
                   ([courseName, stats], index) => (
                     <div
@@ -388,7 +389,6 @@ export default function InputComponent() {
                           <div className="flex items-center gap-2 font-medium text-black">
                             <span className="h-2 w-2 rounded-full bg-amber-500"></span>
                             Must Attend: {stats.statusValue}
-                            {/* ✅ Show condonation badge only if eligible */}
                             {isEligibleForCondonation && (
                               <span className="ml-2 px-2 py-0.5 bg-red-100 text-red-600 rounded-full text-xs font-semibold">
                                 Condonation: ₹{stats.condonation}
@@ -401,27 +401,23 @@ export default function InputComponent() {
                   )
                 )}
 
-                {/* ✅ Total Condonation (only for eligible users) */}
-                {isEligibleForCondonation && courseSummary.totalCondonation > 0 && (
-                  <div
-                    className="block w-full p-6 bg-black/5 backdrop-blur-md rounded-2xl shadow-lg shadow-slate-600/20 
-                              transform transition-all duration-500 ease-out translate-y-4 opacity-0 animate-fadeInLogin"
-                    style={{
-                      animationDelay: `${
-                        Object.keys(courseSummary.courses).length * 100
-                      }ms`,
-                    }}
-                  >
-                    <div className="flex justify-between items-center">
-                      <h5 className="text-lg font-bold tracking-tight text-gray-900">
-                        Total Condonation
-                      </h5>
-                      <span className="text-xl font-bold text-red-600">
-                        ₹{courseSummary.totalCondonation}
-                      </span>
+                {/* ✅ Total Condonation always above logout */}
+                {isEligibleForCondonation &&
+                  courseSummary.totalCondonation > 0 && (
+                    <div
+                      className="block w-full p-6 bg-black/5 backdrop-blur-md rounded-2xl shadow-lg shadow-slate-600/20 
+                                transform transition-all duration-500 ease-out translate-y-4 opacity-0 animate-fadeInLogin"
+                    >
+                      <div className="flex justify-between items-center">
+                        <h5 className="text-lg font-bold tracking-tight text-gray-900">
+                          Total Condonation
+                        </h5>
+                        <span className="text-xl font-bold text-red-600">
+                          ₹{courseSummary.totalCondonation}
+                        </span>
+                      </div>
                     </div>
-                  </div>
-                )}
+                  )}
 
                 <div className="flex justify-center pt-4">
                   <button
