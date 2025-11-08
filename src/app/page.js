@@ -190,6 +190,68 @@ export default function InputComponent() {
     const courseStats = {};
     let totalCondonation = 0;
 
+    //  ADDED THIS SECTION
+
+    // STEP 1: Add all "minor" subject names to this list
+    const KNOWN_MINOR_SUBJECT_NAMES_LIST = [
+      "PYTHON FOR ARTIFICIAL INTELLIGENCE",
+      "MATHEMATICS FOR MACHINE LEARNING",
+      "ESSENTIALS OF MACHINE LEARNING",
+      "DEEP LEARNING",
+      "PYTHON FOR APPLICATION DEVELOPMENT",
+      "DATABASE MANAGEMENT SYSTEMS",
+      "WEB APPLICATION DEVELOPMENT",
+      "SOFTWARE ARCHITECTURE",
+      "Sensors and Devices",
+      "IOT – Architecture, protocols and Applications",
+      "Mobile applications for IOT",
+      "Industrial IoT applications",
+      "Electronic Circuits and Linear ICs",
+      "Fundamentals of Microcontrollers and applications",
+      "Principles of Communication System",
+      "Discrete Signals and Signal Processing",
+      "Internet of Things and Sensor Networks",
+      "Introduction to Robotics",
+      "Electric Vehicles and Smart Mobility",
+      "Data Science & Analytics",
+      "Introduction to Power System",
+      "Energy and Storage Systems",
+      "Power Plant Instrumentation and Automation",
+      "Energy Audit and Management",
+      "Introduction to product design and Associated Development Tools",
+      "Introduction to Computational Methods",
+      "Intelligent Design Practices and Smart Manufacturing",
+      "Mechatronics and robotics",
+      "Corporate Management",
+      "Financial Management",
+      "Fundamentals of Stock Markets and Trading",
+      "Alternative Global Investment Techniques",
+      "Climate Change And Sustainable Development",
+      "Environment and pollution abatement",
+      "Industrial health and safety",
+      "Environmental planning and management",
+      "Building Materials",
+      "Advanced Construction Technologies",
+      "Functional Design Of Buildings",
+      "Sustainable Construction Practices",
+    ];
+
+    // Use a Set for instant lookups (more efficient)
+    // Convert our known base names to lowercase
+    const MINOR_SUBJECT_BASE_NAMES = KNOWN_MINOR_SUBJECT_NAMES_LIST.map(
+      (name) => name.toLowerCase()
+    );
+
+    // Auto-detect the student type
+    const hasMinorSubject = detailedAttendance.some((item) => {
+      const actualCourseName = (item.course[1] || "").toLowerCase();
+
+      // Check if the actual course name *starts with* any of our base names
+      return MINOR_SUBJECT_BASE_NAMES.some((baseName) =>
+        actualCourseName.startsWith(baseName)
+      );
+    });
+
     detailedAttendance.forEach((item) => {
       const courseName = item.course[1];
       if (!courseStats[courseName]) {
@@ -209,6 +271,11 @@ export default function InputComponent() {
           : 0;
       stats.percentage = percentage;
 
+      // To mark disabled classes
+      if (hasMinorSubject && courseName.toLowerCase().includes("remedial")) {
+        stats.disabledReason = "Opted for Minor";
+      }
+
       if (percentage >= 75) {
         stats.statusType = "safe";
         stats.statusValue = Math.max(
@@ -222,15 +289,40 @@ export default function InputComponent() {
           (0.75 * stats.totalClasses - stats.attendedClasses) / 0.25
         );
 
-        // ✅ Use eligibility passed from fetchData
-        stats.condonation = eligible ? CONDONATION_FEE : 0;
-        if (eligible) {
+        // NEW CONDONATION LOGIC
+        if (stats.disabledReason) {
+          // If it's disabled, no condonation
+          stats.condonation = 0;
+        } else if (eligible) {
+          // Otherwise, apply as normal if eligible
+          stats.condonation = CONDONATION_FEE;
           totalCondonation += CONDONATION_FEE;
+        } else {
+          stats.condonation = 0;
         }
       }
     }
+    // Calculate overall totals
+    const totalStats = Object.values(courseStats).reduce(
+      (acc, stats) => {
+        acc.totalAttended += stats.attendedClasses;
+        acc.totalOverall += stats.totalClasses;
+        return acc;
+      },
+      { totalAttended: 0, totalOverall: 0 }
+    );
 
-    setCourseSummary({ courses: courseStats, totalCondonation });
+    const overallPercentage =
+      totalStats.totalOverall > 0
+        ? (totalStats.totalAttended / totalStats.totalOverall) * 100
+        : 0;
+    // (ends here)
+
+    setCourseSummary({
+      courses: courseStats,
+      totalCondonation,
+      totalPercentage: overallPercentage, //new property
+    });
   };
 
   // --- EVENT HANDLERS ---
@@ -352,12 +444,13 @@ export default function InputComponent() {
                   </h5>
                   <p className="text-gray-700">Your attendance details</p>
                 </div>
-
                 {Object.entries(courseSummary.courses).map(
                   ([courseName, stats], index) => (
                     <div
                       key={courseName}
-                      className="block w-full p-6 bg-black/5 backdrop-blur-md rounded-2xl shadow-lg shadow-slate-600/20 transform transition-all duration-500 ease-out translate-y-4 opacity-0 animate-fadeInLogin"
+                      className={`block w-full p-6 bg-black/5 backdrop-blur-md rounded-2xl shadow-lg shadow-slate-600/20 transform transition-all duration-500 ease-out translate-y-4 opacity-0 animate-fadeInLogin ${
+                        stats.disabledReason ? "opacity-60 grayscale-[50%]" : ""
+                      }`} // disabled styling to course cards
                       style={{ animationDelay: `${index * 100}ms` }}
                     >
                       <div className="flex justify-between items-start">
@@ -378,29 +471,56 @@ export default function InputComponent() {
                           style={{ width: `${stats.percentage}%` }}
                         ></div>
                       </div>
-                      <div className="text-sm text-gray-700 flex justify-between items-center">
-                        <span>{`Attended: ${stats.attendedClasses}/${stats.totalClasses}`}</span>
-                        {stats.statusType === "safe" ? (
-                          <div className="flex items-center gap-2 font-medium text-black">
-                            <span className="h-2 w-2 rounded-full bg-green-500"></span>
-                            Skips Left: {stats.statusValue}
-                          </div>
-                        ) : (
-                          <div className="flex items-center gap-2 font-medium text-black">
-                            <span className="h-2 w-2 rounded-full bg-amber-500"></span>
-                            Must Attend: {stats.statusValue}
-                            {isEligibleForCondonation && (
-                              <span className="ml-2 px-2 py-0.5 bg-red-100 text-red-600 rounded-full text-xs font-semibold">
-                                Condonation: ₹{stats.condonation}
-                              </span>
-                            )}
-                          </div>
-                        )}
-                      </div>
+                      {/*  Show disabled reason OR normal stats */}
+                      {stats.disabledReason ? (
+                        <div className="text-sm text-gray-700 font-medium italic mt-1">
+                          {stats.disabledReason}
+                        </div>
+                      ) : (
+                        <div className="text-sm text-gray-700 flex justify-between items-center">
+                          <span>{`Attended: ${stats.attendedClasses}/${stats.totalClasses}`}</span>
+                          {stats.statusType === "safe" ? (
+                            <div className="flex items-center gap-2 font-medium text-black">
+                              <span className="h-2 w-2 rounded-full bg-green-500"></span>
+                              Skips Left: {stats.statusValue}
+                            </div>
+                          ) : (
+                            <div className="flex items-center gap-2 font-medium text-black">
+                              <span className="h-2 w-2 rounded-full bg-amber-500"></span>
+                              Must Attend: {stats.statusValue}
+                              {isEligibleForCondonation &&
+                                stats.condonation > 0 && (
+                                  <span className="ml-2 px-2 py-0.5 bg-red-100 text-red-600 rounded-full text-xs font-semibold">
+                                    Condonation: ₹{stats.condonation}
+                                  </span>
+                                )}
+                            </div>
+                          )}
+                        </div>
+                      )}
                     </div>
                   )
                 )}
-
+                {/*  THIS IS THE CORRECTED CARD */}
+                <div
+                  className="block w-full p-6 bg-black/5 backdrop-blur-md rounded-2xl shadow-lg shadow-slate-600/20 
+                       transform transition-all duration-500 ease-out translate-y-4 opacity-0 animate-fadeInLogin"
+                  style={{
+                    animationDelay: `${
+                      Object.keys(courseSummary.courses).length * 100
+                    }ms`,
+                  }}
+                >
+                  <div className="flex justify-between items-center">
+                    <h5 className="text-lg font-bold tracking-tight text-gray-900">
+                      Overall Attendance
+                    </h5>
+                    <span className="text-2xl font-bold text-gray-900">
+                      {courseSummary.totalPercentage.toFixed(2)}%
+                    </span>
+                  </div>
+                </div>
+                {/*  END OF CORRECTED CARD */}
                 {/* ✅ Total Condonation always above logout */}
                 {isEligibleForCondonation &&
                   courseSummary.totalCondonation > 0 && (
@@ -418,7 +538,6 @@ export default function InputComponent() {
                       </div>
                     </div>
                   )}
-
                 <div className="flex justify-center pt-4">
                   <button
                     className="px-4 py-2 bg-gray-200 text-black rounded-lg shadow-sm hover:bg-gray-300 transition-colors"
