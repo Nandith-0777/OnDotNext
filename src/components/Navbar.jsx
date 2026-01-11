@@ -39,10 +39,11 @@ export default function Navbar({ activeSection, onSectionChange, onLogout, userN
   };
 
   return (
-    <nav className={`w-full bg-white/40 backdrop-blur-xl border-b border-white/30 shadow-lg shadow-black/5 sticky top-0 z-50 transition-transform duration-300 ${
+    <nav className={`w-full sticky top-0 z-50 transition-transform duration-300 ${
       isVisible ? 'translate-y-0' : '-translate-y-full'
     }`}>
-      <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-6">
+      <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-6 py-1">
+        <div className="bg-white/40 backdrop-blur-xl rounded-2xl border border-white/30 shadow-lg shadow-black/5 px-3 sm:px-4 lg:px-6">
         <div className="flex justify-between items-center h-14 sm:h-16">
           {/* Left: Logo */}
           <button
@@ -113,6 +114,7 @@ export default function Navbar({ activeSection, onSectionChange, onLogout, userN
             <span className="hidden sm:inline">Log Out</span>
             <span className="sm:hidden">Out</span>
           </button>
+        </div>
         </div>
       </div>
     </nav>
