@@ -278,9 +278,14 @@ export default function AttendanceDetails({ detailedAttendance, userName }) {
   };
 
   return (
-    <div className="w-full min-h-screen bg-gray-50 pb-6">
+    <div className="w-full min-h-screen bg-white pb-6 relative">
+      {/* Background Pattern - Matching main page */}
+      <div className="fixed inset-0 -z-10 h-full w-full bg-white bg-[linear-gradient(to_right,#f0f0f0_1px,transparent_1px),linear-gradient(to_bottom,#f0f0f0_1px,transparent_1px)] bg-[size:6rem_4rem]">
+        <div className="absolute bottom-0 left-0 right-0 top-0 bg-[radial-gradient(circle_800px_at_100%_200px,#d5c5ff,transparent)]"></div>
+      </div>
+      
       {/* Compact Header with Month Navigation */}
-      <div className="bg-white border-b border-gray-200 sticky top-0 z-40 shadow-sm">
+      <div className="bg-white/95 backdrop-blur-sm border-b border-gray-200/50 sticky top-0 z-40 shadow-sm relative">
         {/* Top Bar - Always Visible */}
         <div className="flex items-center justify-between px-3 py-2.5 border-b border-gray-100">
           <div className="flex-1 min-w-0">
@@ -339,11 +344,11 @@ export default function AttendanceDetails({ detailedAttendance, userName }) {
         </div>
 
         {/* Collapsible Filters */}
-        <div className="bg-gray-50 border-t border-gray-200">
+        <div className="bg-gray-50/50 border-t border-gray-200/50">
           {/* Filter Toggle Button */}
           <button
             onClick={() => setShowFilters(!showFilters)}
-            className="w-full px-3 py-2 flex items-center justify-between text-sm font-medium text-gray-700 hover:bg-gray-100 transition-colors"
+            className="w-full px-3 py-2 flex items-center justify-between text-sm font-medium text-gray-700 hover:bg-gray-100/50 transition-colors"
           >
             <span className="flex items-center gap-2">
               <svg
@@ -469,14 +474,14 @@ export default function AttendanceDetails({ detailedAttendance, userName }) {
       {/* Content - Card Based Layout */}
       <div className="p-3 sm:p-4 space-y-3 sm:space-y-4">
         {groupedByDate.length === 0 ? (
-          <div className="bg-white rounded-xl sm:rounded-2xl shadow-sm p-6 sm:p-8 text-center">
+          <div className="bg-black/5 backdrop-blur-md rounded-xl sm:rounded-2xl shadow-lg shadow-slate-600/20 p-6 sm:p-8 text-center border border-gray-200/50">
             <p className="text-gray-500 text-sm sm:text-base">No attendance records found for the selected filters.</p>
           </div>
         ) : (
           groupedByDate.map((dateGroup) => (
-            <div key={dateGroup.dateStr} className="bg-white rounded-xl sm:rounded-2xl shadow-sm overflow-hidden border border-gray-200">
+            <div key={dateGroup.dateStr} className="bg-black/5 backdrop-blur-md rounded-xl sm:rounded-2xl shadow-lg shadow-slate-600/20 overflow-hidden border border-gray-200/50">
               {/* Date Header */}
-              <div className="bg-gradient-to-r from-blue-50 to-indigo-50 px-3 sm:px-4 py-2.5 sm:py-3 border-b border-gray-200">
+              <div className="bg-gradient-to-r from-blue-50/80 to-indigo-50/80 px-3 sm:px-4 py-2.5 sm:py-3 border-b border-gray-200/50 backdrop-blur-sm">
                 <div className="flex items-center justify-between">
                   <div>
                     <div className="text-base sm:text-lg font-bold text-gray-900">
@@ -486,18 +491,18 @@ export default function AttendanceDetails({ detailedAttendance, userName }) {
                       {dateGroup.weekday}
                     </div>
                   </div>
-                  <div className="text-xs sm:text-sm font-semibold text-gray-700 bg-white px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg shadow-sm">
+                  <div className="text-xs sm:text-sm font-semibold text-gray-700 bg-white/80 backdrop-blur-sm px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg shadow-sm border border-gray-200/50">
                     {dateGroup.items.length} {dateGroup.items.length === 1 ? "class" : "classes"}
                   </div>
                 </div>
               </div>
 
               {/* Classes List */}
-              <div className="divide-y divide-gray-100">
+              <div className="divide-y divide-gray-200/50">
                 {dateGroup.items.map((item, idx) => (
                   <div
                     key={idx}
-                    className="px-3 sm:px-4 py-3 sm:py-4 hover:bg-gray-50 transition-colors"
+                    className="px-3 sm:px-4 py-3 sm:py-4 hover:bg-white/30 transition-colors bg-white/5"
                   >
                     <div className="flex items-start justify-between gap-3">
                       <div className="flex-1 min-w-0">
