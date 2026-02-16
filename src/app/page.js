@@ -76,6 +76,7 @@ export default function InputComponent() {
   const [isEligibleForCondonation, setIsEligibleForCondonation] =
     useState(false);
   const [activeSection, setActiveSection] = useState("attendance");
+  const [showSummary, setShowSummary] = useState(false);
 
   // --- CONSTANTS ---
   const SECRET_KEY = "your-very-secret-key-that-is-long-and-random";
@@ -472,78 +473,169 @@ export default function InputComponent() {
             )}
 
             {courseSummary && activeSection === "attendance" && (
-              <div className="w-full max-w-md mx-auto mt-6 space-y-4">
-                <div className="ml-1 mb-4">
-                  <h5 className="text-xl font-bold tracking-tight text-gray-900">
+              <div className="w-full max-w-md mx-auto mt-4 sm:mt-6 space-y-3 sm:space-y-4 px-3 sm:px-0">
+                <div className="ml-1 mb-3 sm:mb-4">
+                  <h5 className="text-lg sm:text-xl font-bold tracking-tight text-gray-900">
                     Hey {userName.split(' ')[0]},
                   </h5>
-                  <p className="text-gray-700">Your attendance details</p>
+                  <p className="text-sm sm:text-base text-gray-700">Your attendance details</p>
                 </div>
                 
-                {/* Overall Attendance Card - At Top */}
+                {/* Collapsible Summary Card - Hidden by Default */}
                 <div
-                  className="block w-full p-6 bg-black/5 backdrop-blur-md rounded-2xl shadow-lg shadow-slate-600/20 transform transition-all duration-500 ease-out translate-y-4 opacity-0 animate-fadeInLogin"
+                  className="block w-full transform transition-all duration-500 ease-out translate-y-4 opacity-0 animate-fadeInLogin"
                   style={{ animationDelay: '0ms' }}
+                  onMouseEnter={() => {
+                    if (typeof window !== 'undefined' && window.innerWidth >= 640) {
+                      setShowSummary(true);
+                    }
+                  }}
+                  onMouseLeave={() => {
+                    if (typeof window !== 'undefined' && window.innerWidth >= 640) {
+                      setShowSummary(false);
+                    }
+                  }}
+                  onClick={() => setShowSummary(!showSummary)}
                 >
-                  <div className="flex justify-between items-start mb-3">
-                    <h5 className="text-lg font-bold tracking-tight text-gray-900">
-                      Overall Attendance
-                    </h5>
-                    <span className="text-3xl font-bold text-gray-900">
-                      {courseSummary.totalPercentage.toFixed(1)}%
-                    </span>
-                  </div>
-                  <div className="w-full bg-gray-200 rounded-full h-2.5 overflow-hidden">
-                    <div
-                      className={`h-2.5 rounded-full transition-all duration-1000 ease-out ${
-                        courseSummary.totalPercentage < 75
-                          ? "bg-gradient-to-r from-red-700 to-red-500"
-                          : "bg-gradient-to-r from-green-600 to-green-500"
-                      }`}
-                      style={{ width: `${courseSummary.totalPercentage}%` }}
-                    ></div>
-                  </div>
-                </div>
-
-                {/* Total Condonation Card - At Top (if applicable) */}
-                {isEligibleForCondonation &&
-                  courseSummary.totalCondonation > 0 && (
-                    <div
-                      className="block w-full p-6 bg-black/5 backdrop-blur-md rounded-2xl shadow-lg shadow-slate-600/20 transform transition-all duration-500 ease-out translate-y-4 opacity-0 animate-fadeInLogin"
-                      style={{ animationDelay: '100ms' }}
-                    >
-                      <div className="flex justify-between items-center">
-                        <h5 className="text-lg font-bold tracking-tight text-gray-900">
-                          Total Condonation
-                        </h5>
-                        <span className="text-2xl font-bold text-red-600">
-                          ₹{courseSummary.totalCondonation}
-                        </span>
+                  {/* Cover/Trigger Area */}
+                  {!showSummary && (
+                    <div className="w-full p-3 sm:p-4 bg-black/5 backdrop-blur-md rounded-2xl shadow-lg shadow-slate-600/20 border border-gray-200/50 cursor-pointer transition-all duration-300 touch-manipulation active:scale-[0.98]">
+                      <div className="flex items-center justify-between gap-2 sm:gap-3">
+                        <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
+                          <div className="h-8 w-8 sm:h-10 sm:w-10 rounded-lg bg-gradient-to-br from-purple-500/20 to-blue-500/20 flex items-center justify-center flex-shrink-0">
+                            <svg
+                              className="w-4 h-4 sm:w-5 sm:h-5 text-gray-600"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                              />
+                            </svg>
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            <p className="text-xs sm:text-sm font-semibold text-gray-700 truncate">View Summary</p>
+                            <p className="text-[10px] sm:text-xs text-gray-500 truncate">Tap or hover to see details</p>
+                          </div>
+                        </div>
+                        <svg
+                          className="w-4 h-4 sm:w-5 sm:h-5 text-gray-500 transition-transform duration-300 flex-shrink-0"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M19 9l-7 7-7-7"
+                          />
+                        </svg>
                       </div>
                     </div>
                   )}
+
+                  {/* Summary Content - Revealed on Interaction */}
+                  {showSummary && (
+                    <div className="w-full p-4 sm:p-5 md:p-6 bg-black/5 backdrop-blur-md rounded-2xl shadow-lg shadow-slate-600/20 border border-gray-200/50 transition-all duration-300">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5 md:gap-6">
+                        {/* Overall Attendance Section */}
+                        <div className="flex flex-col">
+                          <div className="flex items-center justify-between mb-2 sm:mb-3">
+                            <h5 className="text-xs sm:text-sm font-semibold text-gray-600 uppercase tracking-wide">
+                              Overall Attendance
+                            </h5>
+                          </div>
+                          <div className="flex items-baseline gap-1.5 sm:gap-2 mb-2 sm:mb-3">
+                            <span className="text-3xl sm:text-4xl md:text-5xl font-bold text-gray-900">
+                              {courseSummary.totalPercentage.toFixed(1)}
+                            </span>
+                            <span className="text-lg sm:text-xl md:text-2xl font-semibold text-gray-600">%</span>
+                          </div>
+                          <div className="w-full bg-gray-200 rounded-full h-2.5 sm:h-3 overflow-hidden">
+                            <div
+                              className={`h-2.5 sm:h-3 rounded-full transition-all duration-1000 ease-out ${
+                                courseSummary.totalPercentage < 75
+                                  ? "bg-gradient-to-r from-red-700 to-red-500"
+                                  : "bg-gradient-to-r from-green-600 to-green-500"
+                              }`}
+                              style={{ width: `${courseSummary.totalPercentage}%` }}
+                            ></div>
+                          </div>
+                        </div>
+
+                        {/* Total Condonation Section */}
+                        {isEligibleForCondonation && courseSummary.totalCondonation > 0 ? (
+                          <div className="flex flex-col border-t sm:border-t-0 sm:border-l border-gray-300/50 pt-3 sm:pt-0 sm:pl-4 md:pl-6">
+                            <div className="flex items-center justify-between mb-2 sm:mb-3">
+                              <h5 className="text-xs sm:text-sm font-semibold text-gray-600 uppercase tracking-wide">
+                                Total Condonation
+                              </h5>
+                            </div>
+                            <div className="flex items-baseline gap-1">
+                              <span className="text-2xl sm:text-3xl md:text-4xl font-bold text-red-600">
+                                ₹{courseSummary.totalCondonation}
+                              </span>
+                            </div>
+                            <p className="text-[10px] sm:text-xs text-gray-500 mt-1.5 sm:mt-2">Payable amount</p>
+                          </div>
+                        ) : (
+                          <div className="flex flex-col border-t sm:border-t-0 sm:border-l border-gray-300/50 pt-3 sm:pt-0 sm:pl-4 md:pl-6">
+                            <div className="flex items-center justify-between mb-2 sm:mb-3">
+                              <h5 className="text-xs sm:text-sm font-semibold text-gray-600 uppercase tracking-wide">
+                                Status
+                              </h5>
+                            </div>
+                            <div className="flex items-center gap-1.5 sm:gap-2">
+                              <div className={`h-2.5 w-2.5 sm:h-3 sm:w-3 rounded-full flex-shrink-0 ${
+                                courseSummary.totalPercentage >= 75 ? "bg-green-500" : "bg-amber-500"
+                              }`}></div>
+                              <span className="text-base sm:text-lg font-semibold text-gray-900">
+                                {courseSummary.totalPercentage >= 75 ? "On Track" : "Needs Attention"}
+                              </span>
+                            </div>
+                            <p className="text-[10px] sm:text-xs text-gray-500 mt-1.5 sm:mt-2">Attendance status</p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Attendance Section Heading */}
+                <div className="mt-4 sm:mt-6 mb-3 sm:mb-4">
+                  <div className="flex items-center gap-2 sm:gap-3">
+                    <div className="h-px flex-1 bg-gradient-to-r from-transparent via-gray-300 to-transparent"></div>
+                    <h3 className="text-base sm:text-lg font-bold text-gray-900 whitespace-nowrap px-2">Course Attendance</h3>
+                    <div className="h-px flex-1 bg-gradient-to-r from-transparent via-gray-300 to-transparent"></div>
+                  </div>
+                </div>
 
                 {/* Course Cards */}
                 {Object.entries(courseSummary.courses).map(
                   ([courseName, stats], index) => (
                     <div
                       key={courseName}
-                      className={`block w-full p-6 bg-black/5 backdrop-blur-md rounded-2xl shadow-lg shadow-slate-600/20 transform transition-all duration-500 ease-out translate-y-4 opacity-0 animate-fadeInLogin ${
+                      className={`block w-full p-4 sm:p-5 md:p-6 bg-black/5 backdrop-blur-md rounded-2xl shadow-lg shadow-slate-600/20 transform transition-all duration-500 ease-out translate-y-4 opacity-0 animate-fadeInLogin ${
                         stats.disabledReason ? "opacity-60 grayscale-[50%]" : ""
                       }`} // disabled styling to course cards
                       style={{ animationDelay: `${(index + 2) * 100}ms` }}
                     >
-                      <div className="flex justify-between items-start">
-                        <h5 className="text-lg font-bold tracking-tight text-gray-900 w-2/3">
+                      <div className="flex justify-between items-start gap-2 sm:gap-3">
+                        <h5 className="text-base sm:text-lg font-bold tracking-tight text-gray-900 flex-1 min-w-0 break-words">
                           {courseName}
                         </h5>
-                        <span className="text-2xl font-bold text-gray-900">
+                        <span className="text-xl sm:text-2xl font-bold text-gray-900 flex-shrink-0 whitespace-nowrap">
                           {stats.percentage.toFixed(2)}%
                         </span>
                       </div>
-                      <div className="w-full bg-gray-200 rounded-full h-2.5 my-3 overflow-hidden">
+                      <div className="w-full bg-gray-200 rounded-full h-2 sm:h-2.5 my-2 sm:my-3 overflow-hidden">
                         <div
-                          className={`h-2.5 rounded-full transition-all duration-1000 ease-out ${
+                          className={`h-2 sm:h-2.5 rounded-full transition-all duration-1000 ease-out ${
                             stats.percentage < 75
                               ? "bg-gradient-to-r from-red-700 to-red-500"
                               : "bg-gradient-to-r from-green-600 to-green-500"
@@ -553,24 +645,24 @@ export default function InputComponent() {
                       </div>
                       {/*  Show disabled reason OR normal stats */}
                       {stats.disabledReason ? (
-                        <div className="text-sm text-gray-700 font-medium italic mt-1">
+                        <div className="text-xs sm:text-sm text-gray-700 font-medium italic mt-1">
                           {stats.disabledReason}
                         </div>
                       ) : (
-                        <div className="text-sm text-gray-700 flex justify-between items-center">
-                          <span>{`Attended: ${stats.attendedClasses}/${stats.totalClasses}`}</span>
+                        <div className="text-xs sm:text-sm text-gray-700 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-1 sm:gap-2">
+                          <span className="whitespace-nowrap">{`Attended: ${stats.attendedClasses}/${stats.totalClasses}`}</span>
                           {stats.statusType === "safe" ? (
-                            <div className="flex items-center gap-2 font-medium text-black">
-                              <span className="h-2 w-2 rounded-full bg-green-500"></span>
-                              Skips Left: {stats.statusValue}
+                            <div className="flex items-center gap-1.5 sm:gap-2 font-medium text-black">
+                              <span className="h-1.5 w-1.5 sm:h-2 sm:w-2 rounded-full bg-green-500 flex-shrink-0"></span>
+                              <span className="whitespace-nowrap">Skips Left: {stats.statusValue}</span>
                             </div>
                           ) : (
-                            <div className="flex items-center gap-2 font-medium text-black">
-                              <span className="h-2 w-2 rounded-full bg-amber-500"></span>
-                              Must Attend: {stats.statusValue}
+                            <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 font-medium text-black">
+                              <span className="h-1.5 w-1.5 sm:h-2 sm:w-2 rounded-full bg-amber-500 flex-shrink-0"></span>
+                              <span className="whitespace-nowrap">Must Attend: {stats.statusValue}</span>
                               {isEligibleForCondonation &&
                                 stats.condonation > 0 && (
-                                  <span className="ml-2 px-2 py-0.5 bg-red-100 text-red-600 rounded-full text-xs font-semibold">
+                                  <span className="px-1.5 sm:px-2 py-0.5 bg-red-100 text-red-600 rounded-full text-[10px] sm:text-xs font-semibold whitespace-nowrap">
                                     Condonation: ₹{stats.condonation}
                                   </span>
                                 )}
