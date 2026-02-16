@@ -473,12 +473,12 @@ export default function InputComponent() {
             )}
 
             {courseSummary && activeSection === "attendance" && (
-              <div className="w-full max-w-md mx-auto mt-4 sm:mt-6 space-y-3 sm:space-y-4 px-3 sm:px-0">
-                <div className="ml-1 mb-3 sm:mb-4">
+              <div className="w-full max-w-md mx-auto mt-4 sm:mt-6 space-y-4 px-4 sm:px-5">
+                <div className="mb-4">
                   <h5 className="text-lg sm:text-xl font-bold tracking-tight text-gray-900">
                     Hey {userName.split(' ')[0]},
                   </h5>
-                  <p className="text-sm sm:text-base text-gray-700">Your attendance details</p>
+                  <p className="text-sm sm:text-base text-gray-700 mt-1">Your attendance details</p>
                 </div>
                 
                 {/* Collapsible Summary Card - Hidden by Default */}
@@ -499,7 +499,7 @@ export default function InputComponent() {
                 >
                   {/* Cover/Trigger Area */}
                   {!showSummary && (
-                    <div className="w-full p-3 sm:p-4 bg-black/5 backdrop-blur-md rounded-2xl shadow-lg shadow-slate-600/20 border border-gray-200/50 cursor-pointer transition-all duration-300 touch-manipulation active:scale-[0.98]">
+                    <div className="w-full p-4 sm:p-5 bg-black/5 backdrop-blur-md rounded-2xl shadow-lg shadow-slate-600/20 border border-gray-200/50 cursor-pointer transition-all duration-300 touch-manipulation active:scale-[0.98]">
                       <div className="flex items-center justify-between gap-2 sm:gap-3">
                         <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
                           <div className="h-8 w-8 sm:h-10 sm:w-10 rounded-lg bg-gradient-to-br from-purple-500/20 to-blue-500/20 flex items-center justify-center flex-shrink-0">
@@ -607,7 +607,7 @@ export default function InputComponent() {
                 </div>
 
                 {/* Attendance Section Heading */}
-                <div className="mt-6 sm:mt-8 md:mt-10 mb-3 sm:mb-4">
+                <div className="mt-6 sm:mt-7 mb-4">
                   <div className="flex items-center gap-2 sm:gap-3">
                     <div className="h-px flex-1 bg-gradient-to-r from-transparent via-gray-300 to-transparent"></div>
                     <h3 className="text-base sm:text-lg font-bold text-gray-900 whitespace-nowrap px-2">Course Attendance</h3>
@@ -620,7 +620,7 @@ export default function InputComponent() {
                   ([courseName, stats], index) => (
                     <div
                       key={courseName}
-                      className={`block w-full p-4 sm:p-5 md:p-6 bg-black/5 backdrop-blur-md rounded-2xl shadow-lg shadow-slate-600/20 transform transition-all duration-500 ease-out translate-y-4 opacity-0 animate-fadeInLogin ${
+                      className={`block w-full p-5 sm:p-6 bg-black/5 backdrop-blur-md rounded-2xl shadow-lg shadow-slate-600/20 transform transition-all duration-500 ease-out translate-y-4 opacity-0 animate-fadeInLogin ${
                         stats.disabledReason ? "opacity-60 grayscale-[50%]" : ""
                       }`} // disabled styling to course cards
                       style={{ animationDelay: `${(index + 2) * 100}ms` }}
