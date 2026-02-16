@@ -607,7 +607,7 @@ export default function InputComponent() {
                 </div>
 
                 {/* Attendance Section Heading */}
-                <div className="mt-4 sm:mt-6 mb-3 sm:mb-4">
+                <div className="mt-6 sm:mt-8 md:mt-10 mb-3 sm:mb-4">
                   <div className="flex items-center gap-2 sm:gap-3">
                     <div className="h-px flex-1 bg-gradient-to-r from-transparent via-gray-300 to-transparent"></div>
                     <h3 className="text-base sm:text-lg font-bold text-gray-900 whitespace-nowrap px-2">Course Attendance</h3>
