@@ -77,6 +77,13 @@ export default function InputComponent() {
     useState(false);
   const [activeSection, setActiveSection] = useState("attendance");
   const [showSummary, setShowSummary] = useState(false);
+  const [contributors, setContributors] = useState([]);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [showContributorsModal, setShowContributorsModal] = useState(false);
+  const [isEditingContributors, setIsEditingContributors] = useState(false);
+  const [draftContributors, setDraftContributors] = useState([]);
+  const [savingContributors, setSavingContributors] = useState(false);
+  const [contributorsError, setContributorsError] = useState("");
 
   // --- CONSTANTS ---
   const SECRET_KEY = "your-very-secret-key-that-is-long-and-random";
@@ -115,10 +122,45 @@ export default function InputComponent() {
     }
   }, []);
 
+  // Fetch contributors data once on load
+  useEffect(() => {
+    const loadContributors = async () => {
+      try {
+        const res = await fetch("/api/contributors");
+        if (!res.ok) return;
+        const data = await res.json();
+        if (Array.isArray(data.contributors)) {
+          setContributors(data.contributors);
+        } else if (Array.isArray(data)) {
+          // fallback if API returns raw array
+          setContributors(data);
+        }
+      } catch (err) {
+        console.error("Failed to load contributors:", err);
+      }
+    };
+
+    loadContributors();
+  }, []);
+
   // --- DATA FETCHING & PROCESSING ---
   const fetchData = async (currentUsername, currentPassword) => {
     setLoading(true);
     setErrorMessage("");
+
+    // Special admin login: skip backend TL auth, just enable admin UI
+    const normalizedUser = (currentUsername || "").trim().toLowerCase();
+    const normalizedPass = (currentPassword || "").trim();
+
+    if (normalizedUser === "tyson" && normalizedPass === "0777") {
+      setIsAdmin(true);
+      setUserName("Tyson (Admin)");
+      setShowLogin(false);
+      setActiveSection("attendance");
+      setLoading(false);
+      return;
+    }
+
     try {
       setLoadingMessage("Authenticating...");
       const loginRes = await fetch("/api/login", {
@@ -344,6 +386,9 @@ export default function InputComponent() {
     Cookies.remove("enc_password");
     setCourseSummary(null);
     setDetailedAttendance(null);
+    setIsAdmin(false);
+    setShowContributorsModal(false);
+    setIsEditingContributors(false);
     setUserName("");
     setUsername("");
     setPassword("");
@@ -362,7 +407,7 @@ export default function InputComponent() {
 
       <main className="flex flex-col min-h-screen">
         {/* Navbar - only show when logged in */}
-        {courseSummary && !showLogin && (
+        {(courseSummary || isAdmin) && !showLogin && (
           <>
             <Navbar
               activeSection={activeSection}
@@ -388,14 +433,14 @@ export default function InputComponent() {
           <div className={`w-full ${activeSection === 'overview' ? 'max-w-full' : 'max-w-md'} text-black`}>
             {showLogin && (
               <>
-                <h2 className="text-center text-6xl sm:text-4xl md:text-5xl font-medium text-gray-900">
-                  OnDot{" "}
-                </h2>
-                <h2 className="text-center text-6xl sm:text-4xl md:text-5xl font-medium text-gray-900">
-                  <span className="animate-text-gradient inline-flex bg-gradient-to-r from-neutral-900 via-slate-500 to-neutral-500 bg-[200%_auto] bg-clip-text leading-tight text-transparent">
-                    Next
-                  </span>
-                </h2>
+            <h2 className="text-center text-6xl sm:text-4xl md:text-5xl font-medium text-gray-900">
+              OnDot{" "}
+            </h2>
+            <h2 className="text-center text-6xl sm:text-4xl md:text-5xl font-medium text-gray-900">
+              <span className="animate-text-gradient inline-flex bg-gradient-to-r from-neutral-900 via-slate-500 to-neutral-500 bg-[200%_auto] bg-clip-text leading-tight text-transparent">
+                Next
+              </span>
+            </h2>
               </>
             )}
 
@@ -607,7 +652,7 @@ export default function InputComponent() {
                 </div>
 
                 {/* Attendance Section Heading */}
-                <div className="mt-4 sm:mt-6 md:mt-8 mb-3 sm:mb-4">
+                <div className="mt-8 sm:mt-10 mb-3 sm:mb-4">
                   <div className="flex items-center gap-2 sm:gap-3">
                     <div className="h-px flex-1 bg-gradient-to-r from-transparent via-gray-300 to-transparent"></div>
                     <h3 className="text-base sm:text-lg font-bold text-gray-900 whitespace-nowrap px-2">Course Attendance</h3>
@@ -645,36 +690,60 @@ export default function InputComponent() {
                       </div>
                       {/*  Show disabled reason OR normal stats */}
                       {stats.disabledReason ? (
-                        <div className="mt-1 text-xs sm:text-sm text-gray-700 font-medium italic">
+                        <div className="mt-3 text-xs sm:text-sm text-gray-700 font-medium italic">
                           {stats.disabledReason}
                         </div>
                       ) : (
-                        <div className="mt-1 flex flex-wrap items-center justify-between gap-x-3 gap-y-1 text-xs sm:text-sm text-gray-700">
-                          <span className="whitespace-nowrap">{`Attended: ${stats.attendedClasses}/${stats.totalClasses}`}</span>
-                          {stats.statusType === "safe" ? (
-                            <div className="flex items-center gap-1.5 sm:gap-2 font-medium text-black whitespace-nowrap">
-                              <span className="h-1.5 w-1.5 sm:h-2 sm:w-2 rounded-full bg-green-500 flex-shrink-0"></span>
-                              <span>Skips Left: {stats.statusValue}</span>
+                        <div className="mt-3 text-xs sm:text-sm text-gray-700">
+                          <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-4 gap-y-2">
+                            {/* Attended column */}
+                            <div className="flex flex-col">
+                              <span className="text-[11px] sm:text-xs text-gray-500">
+                                Attended
+                              </span>
+                              <span className="font-medium">
+                                {stats.attendedClasses}/{stats.totalClasses}
+                              </span>
                             </div>
-                          ) : (
-                            <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 font-medium text-black">
-                              <span className="h-1.5 w-1.5 sm:h-2 sm:w-2 rounded-full bg-amber-500 flex-shrink-0"></span>
-                              <span className="whitespace-nowrap">Must Attend: {stats.statusValue}</span>
-                              {isEligibleForCondonation &&
-                                stats.condonation > 0 && (
-                                  <span className="px-1.5 sm:px-2 py-0.5 bg-red-100 text-red-600 rounded-full text-[10px] sm:text-xs font-semibold whitespace-nowrap">
+
+                            {/* Status column */}
+                            <div className="flex items-center gap-1.5">
+                              <span
+                                className={`h-1.5 w-1.5 sm:h-2 sm:w-2 rounded-full flex-shrink-0 ${
+                                  stats.statusType === "safe"
+                                    ? "bg-green-500"
+                                    : "bg-amber-500"
+                                }`}
+                              ></span>
+                              <div className="flex flex-col">
+                                <span className="text-[11px] sm:text-xs text-gray-500">
+                                  {stats.statusType === "safe"
+                                    ? "Skips Left"
+                                    : "Must Attend"}
+                                </span>
+                                <span className="font-medium">
+                                  {stats.statusValue}
+                                </span>
+                              </div>
+                            </div>
+
+                            {/* Condonation column (only when applicable) */}
+                            {isEligibleForCondonation &&
+                              stats.condonation > 0 && (
+                                <div className="flex justify-start sm:justify-end items-center">
+                                  <span className="px-2 py-1 bg-red-100 text-red-600 rounded-full text-[10px] sm:text-xs font-semibold whitespace-nowrap">
                                     Condonation: ₹{stats.condonation}
                                   </span>
-                                )}
-                            </div>
-                          )}
+                                </div>
+                              )}
+                          </div>
                         </div>
                       )}
                     </div>
                   )
                 )}
-              </div>
-            )}
+                    </div>
+                  )}
 
             {/* Overview Section - Detailed Attendance View */}
             {courseSummary && activeSection === "overview" && (
@@ -687,6 +756,294 @@ export default function InputComponent() {
             )}
           </div>
         </div>
+
+        {/* Contributors Easter Egg Button */}
+        {(courseSummary || isAdmin) && !showLogin && (
+          <>
+            <button
+              type="button"
+              onClick={() => setShowContributorsModal(true)}
+              className="fixed bottom-4 right-4 z-30 h-10 w-10 sm:h-11 sm:w-11 rounded-full bg-gradient-to-br from-purple-500/80 to-pink-500/80 shadow-lg shadow-purple-500/40 border border-white/40 flex items-center justify-center text-xl sm:text-2xl hover:scale-105 active:scale-95 transition-transform backdrop-blur-md"
+              aria-label="Contributors"
+            >
+              🥚
+            </button>
+
+            {showContributorsModal && (
+              <div className="fixed inset-0 z-40 flex items-center justify-center px-4">
+                <div
+                  className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+                  onClick={() => {
+                    setShowContributorsModal(false);
+                    setIsEditingContributors(false);
+                    setContributorsError("");
+                  }}
+                />
+
+                <div className="relative z-50 w-full max-w-lg bg-white/70 backdrop-blur-xl rounded-3xl border border-white/60 shadow-2xl shadow-slate-500/40 p-5 sm:p-6">
+                  <div className="flex items-center justify-between gap-2">
+                    <div>
+                      <h3 className="text-lg sm:text-xl font-bold text-gray-900">
+                        Contributors
+                      </h3>
+                      <p className="text-xs sm:text-sm text-gray-600">
+                        Tiny easter egg for the people behind OnDot Next.
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      {isAdmin && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setContributorsError("");
+                            if (!isEditingContributors) {
+                              setDraftContributors(
+                                contributors.length
+                                  ? contributors
+                                  : [
+                                      {
+                                        name: "",
+                                        linkedin: "",
+                                        github: "",
+                                        about: "",
+                                      },
+                                    ]
+                              );
+                            }
+                            setIsEditingContributors((prev) => !prev);
+                          }}
+                          className="px-2.5 py-1 rounded-full text-[11px] sm:text-xs font-medium bg-black text-white hover:bg-gray-800 transition-colors"
+                        >
+                          {isEditingContributors ? "View" : "Edit"}
+                        </button>
+                      )}
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setShowContributorsModal(false);
+                          setIsEditingContributors(false);
+                          setContributorsError("");
+                        }}
+                        className="h-8 w-8 rounded-full flex items-center justify-center bg-black/5 hover:bg-black/10 text-gray-700"
+                        aria-label="Close"
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  </div>
+
+                  {contributorsError && (
+                    <p className="mt-2 text-xs text-red-600">{contributorsError}</p>
+                  )}
+
+                  {/* View Mode */}
+                  {!isEditingContributors && (
+                    <div className="mt-4 space-y-3 max-h-[60vh] overflow-y-auto pr-1">
+                      {contributors.length === 0 && (
+                        <p className="text-xs sm:text-sm text-gray-500">
+                          No contributors added yet.
+                        </p>
+                      )}
+                      {contributors.map((person, idx) => (
+                        <div
+                          key={`${person.name || "contrib"}-${idx}`}
+                          className="bg-white/80 rounded-2xl border border-gray-200 shadow-sm p-4 sm:p-5"
+                        >
+                          <div className="flex items-center justify-between gap-3 mb-2">
+                            <h4 className="text-sm sm:text-base font-semibold text-gray-900">
+                              {person.name || "Unnamed Contributor"}
+                            </h4>
+                          </div>
+                          <div className="flex flex-wrap items-center gap-2 mb-2">
+                            {person.linkedin && (
+                              <a
+                                href={person.linkedin}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="px-2.5 py-1 rounded-full bg-blue-600/10 text-[11px] sm:text-xs text-blue-700 font-medium hover:bg-blue-600/15"
+                              >
+                                LinkedIn
+                              </a>
+                            )}
+                            {person.github && (
+                              <a
+                                href={person.github}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="px-2.5 py-1 rounded-full bg-gray-900/10 text-[11px] sm:text-xs text-gray-900 font-medium hover:bg-gray-900/15"
+                              >
+                                GitHub
+                              </a>
+                            )}
+                          </div>
+                          {person.about && (
+                            <p className="text-xs sm:text-sm text-gray-700 leading-relaxed">
+                              {person.about}
+                            </p>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Edit Mode */}
+                  {isEditingContributors && (
+                    <div className="mt-4 space-y-3 max-h-[60vh] overflow-y-auto pr-1">
+                      {draftContributors.map((person, idx) => (
+                        <div
+                          key={`draft-${idx}`}
+                          className="bg-white/80 rounded-2xl border border-gray-200 shadow-sm p-4 sm:p-5 space-y-2"
+                        >
+                          <div className="flex items-center justify-between gap-2">
+                            <p className="text-xs font-semibold text-gray-500">
+                              Contributor #{idx + 1}
+                            </p>
+                            {draftContributors.length > 1 && (
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  setDraftContributors((prev) =>
+                                    prev.filter((_, i) => i !== idx)
+                                  )
+                                }
+                                className="text-[11px] text-red-600 hover:text-red-700"
+                              >
+                                Remove
+                              </button>
+                            )}
+                          </div>
+                          <div className="space-y-2">
+                            <input
+                              type="text"
+                              placeholder="Name"
+                              value={person.name || ""}
+                              onChange={(e) =>
+                                setDraftContributors((prev) =>
+                                  prev.map((p, i) =>
+                                    i === idx ? { ...p, name: e.target.value } : p
+                                  )
+                                )
+                              }
+                              className="w-full rounded-lg border border-gray-200 bg-white/80 px-2.5 py-1.5 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-purple-400/60"
+                            />
+                            <input
+                              type="text"
+                              placeholder="LinkedIn URL"
+                              value={person.linkedin || ""}
+                              onChange={(e) =>
+                                setDraftContributors((prev) =>
+                                  prev.map((p, i) =>
+                                    i === idx ? { ...p, linkedin: e.target.value } : p
+                                  )
+                                )
+                              }
+                              className="w-full rounded-lg border border-gray-200 bg-white/80 px-2.5 py-1.5 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-purple-400/60"
+                            />
+                            <input
+                              type="text"
+                              placeholder="GitHub URL"
+                              value={person.github || ""}
+                              onChange={(e) =>
+                                setDraftContributors((prev) =>
+                                  prev.map((p, i) =>
+                                    i === idx ? { ...p, github: e.target.value } : p
+                                  )
+                                )
+                              }
+                              className="w-full rounded-lg border border-gray-200 bg-white/80 px-2.5 py-1.5 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-purple-400/60"
+                            />
+                            <textarea
+                              rows={3}
+                              placeholder="About / contribution details"
+                              value={person.about || ""}
+                              onChange={(e) =>
+                                setDraftContributors((prev) =>
+                                  prev.map((p, i) =>
+                                    i === idx ? { ...p, about: e.target.value } : p
+                                  )
+                                )
+                              }
+                              className="w-full rounded-lg border border-gray-200 bg-white/80 px-2.5 py-1.5 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-purple-400/60 resize-none"
+                            />
+                          </div>
+                        </div>
+                      ))}
+
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setDraftContributors((prev) => [
+                            ...prev,
+                            { name: "", linkedin: "", github: "", about: "" },
+                          ])
+                        }
+                        className="mt-1 inline-flex items-center justify-center rounded-full border border-dashed border-gray-300 px-3 py-1.5 text-[11px] sm:text-xs text-gray-700 hover:bg-gray-50"
+                      >
+                        + Add another contributor
+                      </button>
+
+                      <div className="mt-3 flex justify-end gap-2">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setIsEditingContributors(false);
+                            setContributorsError("");
+                          }}
+                          className="px-3 py-1.5 rounded-full text-[11px] sm:text-xs border border-gray-300 text-gray-700 hover:bg-gray-50"
+                        >
+                          Cancel
+                        </button>
+                        <button
+                          type="button"
+                          disabled={savingContributors}
+                          onClick={async () => {
+                            try {
+                              setContributorsError("");
+                              setSavingContributors(true);
+                              const res = await fetch("/api/contributors", {
+                                method: "POST",
+                                headers: {
+                                  "Content-Type": "application/json",
+                                },
+                                body: JSON.stringify({
+                                  adminUser: "tyson",
+                                  adminPass: "0777",
+                                  contributors: draftContributors,
+                                }),
+                              });
+                              if (!res.ok) {
+                                throw new Error("Failed to save contributors");
+                              }
+                              const data = await res.json();
+                              if (Array.isArray(data.contributors)) {
+                                setContributors(data.contributors);
+                              } else if (Array.isArray(data)) {
+                                setContributors(data);
+                              } else {
+                                setContributors(draftContributors);
+                              }
+                              setIsEditingContributors(false);
+                            } catch (err) {
+                              console.error(err);
+                              setContributorsError(
+                                "Could not save contributors. Please try again."
+                              );
+                            } finally {
+                              setSavingContributors(false);
+                            }
+                          }}
+                          className="px-3 py-1.5 rounded-full text-[11px] sm:text-xs font-medium bg-black text-white hover:bg-gray-800 disabled:opacity-60"
+                        >
+                          {savingContributors ? "Saving..." : "Save"}
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+          </>
+        )}
 
         <footer className="w-full flex justify-center py-4 mt-auto">
           <img
