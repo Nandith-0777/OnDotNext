@@ -81,6 +81,7 @@ export default function InputComponent() {
   const [isAdmin, setIsAdmin] = useState(false);
   const [showContributorsModal, setShowContributorsModal] = useState(false);
   const [isEditingContributors, setIsEditingContributors] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const [draftContributors, setDraftContributors] = useState([]);
   const [savingContributors, setSavingContributors] = useState(false);
   const [contributorsError, setContributorsError] = useState("");
@@ -484,15 +485,59 @@ export default function InputComponent() {
                     >
                       ERP Password
                     </label>
-                    <input
-                      id="password"
-                      type="password"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-indigo-500 focus:border-indigo-500 block w-full p-2.5"
-                      placeholder="d/m/yyyy Format"
-                      required
-                    />
+                    <div className="relative">
+                      <input
+                        id="password"
+                        type={showPassword ? "text" : "password"}
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-indigo-500 focus:border-indigo-500 block w-full p-2.5 pr-10"
+                        placeholder="d/m/yyyy Format"
+                        required
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-500 hover:text-gray-700 focus:outline-none"
+                        aria-label={showPassword ? "Hide password" : "Show password"}
+                      >
+                        {showPassword ? (
+                          <svg
+                            className="w-5 h-5"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.29 3.29m0 0L3 3m3.29 3.29L3 3"
+                            />
+                          </svg>
+                        ) : (
+                          <svg
+                            className="w-5 h-5"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                            />
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                            />
+                          </svg>
+                        )}
+                      </button>
+                    </div>
                   </div>
                   <button
                     type="submit"
@@ -601,15 +646,17 @@ export default function InputComponent() {
                             </span>
                             <span className="text-lg sm:text-xl md:text-2xl font-semibold text-gray-600">%</span>
                           </div>
-                          <div className="w-full bg-gray-200 rounded-full h-2.5 sm:h-3 overflow-hidden">
-                            <div
-                              className={`h-2.5 sm:h-3 rounded-full transition-all duration-1000 ease-out ${
+                          <div className="w-full mt-1 sm:mt-2">
+                            <div className="mx-2 sm:mx-4 bg-gray-200 rounded-full h-2.5 sm:h-3 overflow-hidden">
+                              <div
+                                className={`h-2.5 sm:h-3 rounded-full transition-all duration-1000 ease-out ${
                                 courseSummary.totalPercentage < 75
                                   ? "bg-gradient-to-r from-red-700 to-red-500"
                                   : "bg-gradient-to-r from-green-600 to-green-500"
-                              }`}
-                              style={{ width: `${courseSummary.totalPercentage}%` }}
-                            ></div>
+                                }`}
+                                style={{ width: `${courseSummary.totalPercentage}%` }}
+                              ></div>
+                            </div>
                           </div>
                         </div>
 
@@ -678,15 +725,17 @@ export default function InputComponent() {
                           {stats.percentage.toFixed(2)}%
                         </span>
                       </div>
-                      <div className="w-full bg-gray-200 rounded-full h-2 sm:h-2.5 my-2 sm:my-3 overflow-hidden">
-                        <div
-                          className={`h-2 sm:h-2.5 rounded-full transition-all duration-1000 ease-out ${
+                      <div className="w-full my-2 sm:my-3">
+                        <div className="mx-2 sm:mx-4 bg-gray-200 rounded-full h-2.5 sm:h-3 overflow-hidden">
+                          <div
+                            className={`h-2.5 sm:h-3 rounded-full transition-all duration-1000 ease-out ${
                             stats.percentage < 75
                               ? "bg-gradient-to-r from-red-700 to-red-500"
                               : "bg-gradient-to-r from-green-600 to-green-500"
                           }`}
                           style={{ width: `${stats.percentage}%` }}
                         ></div>
+                        </div>
                       </div>
                       {/*  Show disabled reason OR normal stats */}
                       {stats.disabledReason ? (
@@ -728,15 +777,15 @@ export default function InputComponent() {
                             </div>
 
                             {/* Condonation column (only when applicable) */}
-                            {isEligibleForCondonation &&
-                              stats.condonation > 0 && (
+                              {isEligibleForCondonation &&
+                                stats.condonation > 0 && (
                                 <div className="flex justify-start sm:justify-end items-center">
                                   <span className="px-2 py-1 bg-red-100 text-red-600 rounded-full text-[10px] sm:text-xs font-semibold whitespace-nowrap">
                                     Condonation: ₹{stats.condonation}
                                   </span>
                                 </div>
-                              )}
-                          </div>
+                                )}
+                            </div>
                         </div>
                       )}
                     </div>
@@ -763,7 +812,12 @@ export default function InputComponent() {
             <button
               type="button"
               onClick={() => setShowContributorsModal(true)}
-              className="fixed bottom-4 right-4 z-30 h-10 w-10 sm:h-11 sm:w-11 rounded-full bg-gradient-to-br from-purple-500/80 to-pink-500/80 shadow-lg shadow-purple-500/40 border border-white/40 flex items-center justify-center text-xl sm:text-2xl hover:scale-105 active:scale-95 transition-transform backdrop-blur-md"
+              className="fixed bottom-4 right-4 z-30 h-10 w-10 sm:h-11 sm:w-11 rounded-full bg-gradient-to-br from-purple-500/90 to-pink-500/90 shadow-lg shadow-purple-500/40 border border-white/50 flex items-center justify-center text-xl sm:text-2xl hover:scale-105 active:scale-95 transition-transform backdrop-blur-md will-change-transform"
+              style={{ 
+                WebkitBackfaceVisibility: 'hidden',
+                backfaceVisibility: 'hidden',
+                transform: 'translateZ(0)'
+              }}
               aria-label="Contributors"
             >
               🥚
@@ -853,7 +907,7 @@ export default function InputComponent() {
                             <h4 className="text-sm sm:text-base font-semibold text-gray-900">
                               {person.name || "Unnamed Contributor"}
                             </h4>
-                          </div>
+                </div>
                           <div className="flex flex-wrap items-center gap-2 mb-2">
                             {person.linkedin && (
                               <a
@@ -881,7 +935,7 @@ export default function InputComponent() {
                               {person.about}
                             </p>
                           )}
-                        </div>
+                      </div>
                       ))}
                     </div>
                   )}
@@ -993,7 +1047,7 @@ export default function InputComponent() {
                         >
                           Cancel
                         </button>
-                        <button
+                  <button
                           type="button"
                           disabled={savingContributors}
                           onClick={async () => {
@@ -1035,12 +1089,12 @@ export default function InputComponent() {
                           className="px-3 py-1.5 rounded-full text-[11px] sm:text-xs font-medium bg-black text-white hover:bg-gray-800 disabled:opacity-60"
                         >
                           {savingContributors ? "Saving..." : "Save"}
-                        </button>
-                      </div>
-                    </div>
-                  )}
+                  </button>
                 </div>
               </div>
+            )}
+          </div>
+        </div>
             )}
           </>
         )}
