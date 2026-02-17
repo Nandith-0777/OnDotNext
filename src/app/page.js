@@ -645,16 +645,16 @@ export default function InputComponent() {
                       </div>
                       {/*  Show disabled reason OR normal stats */}
                       {stats.disabledReason ? (
-                        <div className="text-xs sm:text-sm text-gray-700 font-medium italic mt-1">
+                        <div className="mt-1 text-xs sm:text-sm text-gray-700 font-medium italic">
                           {stats.disabledReason}
                         </div>
                       ) : (
-                        <div className="text-xs sm:text-sm text-gray-700 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-1 sm:gap-2">
+                        <div className="mt-1 flex flex-wrap items-center justify-between gap-x-3 gap-y-1 text-xs sm:text-sm text-gray-700">
                           <span className="whitespace-nowrap">{`Attended: ${stats.attendedClasses}/${stats.totalClasses}`}</span>
                           {stats.statusType === "safe" ? (
-                            <div className="flex items-center gap-1.5 sm:gap-2 font-medium text-black">
+                            <div className="flex items-center gap-1.5 sm:gap-2 font-medium text-black whitespace-nowrap">
                               <span className="h-1.5 w-1.5 sm:h-2 sm:w-2 rounded-full bg-green-500 flex-shrink-0"></span>
-                              <span className="whitespace-nowrap">Skips Left: {stats.statusValue}</span>
+                              <span>Skips Left: {stats.statusValue}</span>
                             </div>
                           ) : (
                             <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 font-medium text-black">
